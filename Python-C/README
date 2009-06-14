@@ -1,7 +1,0 @@
-Quick and dirty build:
-
-$ python setup.py build
-$ ln -s build/lib.*/csudoku.so .
-
-Requires Python 2.5.
-
