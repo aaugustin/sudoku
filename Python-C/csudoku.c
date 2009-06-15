@@ -2,22 +2,7 @@
  * 
  * Improves the performance of the pure Python version
  * 
- * Copyright (C) 2008 Aymeric Augustin
- * Released under the GPL
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Copyright (C) 2008-2009 Aymeric Augustin
  */
 
 #include "csudoku.h"
@@ -154,7 +139,7 @@ CSuDoKu__eliminate(CSuDoKu *self, int i, int n)
 }
 
 static int
-CSuDoKu__searchMin(CSuDoKu *self)
+CSuDoKu__search_min(CSuDoKu *self)
 {
     int i, im, cm;
     
@@ -172,7 +157,7 @@ CSuDoKu__searchMin(CSuDoKu *self)
 }
 
 static PyObject*
-CSuDoKu__resolveAux(CSuDoKu *self)
+CSuDoKu__resolve_aux(CSuDoKu *self)
 {
     PyObject *res, *sres, *grid, *sg;
     CSuDoKu *t;
@@ -198,14 +183,14 @@ CSuDoKu__resolveAux(CSuDoKu *self)
         }
         Py_DECREF(self->g);
         self->g = Py_BuildValue("ic", self->n, '+');
-        if (PyList_Append(res, CSuDoKu_get2dArray(self->v)) < 0)
+        if (PyList_Append(res, CSuDoKu_get2darray(self->v)) < 0)
         {
             return NULL;
         }
         return res;
     }
     
-    i = CSuDoKu__searchMin(self);
+    i = CSuDoKu__search_min(self);
     
     t = (CSuDoKu*)PyType_GenericNew(&CSuDoKuType, NULL, NULL);
     
@@ -233,7 +218,7 @@ CSuDoKu__resolveAux(CSuDoKu *self)
                 }
                 continue;
             }
-            sres = CSuDoKu__resolveAux(t);
+            sres = CSuDoKu__resolve_aux(t);
             for (x = 0; x < PyList_Size(sres); x++)
             {
                 grid = PyList_GetItem(sres, x);
@@ -260,7 +245,7 @@ CSuDoKu__resolveAux(CSuDoKu *self)
 }
 
 static int
-CSuDoKu__uniqueSolAux(CSuDoKu *self)
+CSuDoKu__unique_sol_aux(CSuDoKu *self)
 {
     CSuDoKu *t;
     int i, n, count, scount;
@@ -270,7 +255,7 @@ CSuDoKu__uniqueSolAux(CSuDoKu *self)
         return 1;
     }
     
-    i = CSuDoKu__searchMin(self);
+    i = CSuDoKu__search_min(self);
     
     t = (CSuDoKu*)PyType_GenericNew(&CSuDoKuType, NULL, NULL);
     
@@ -284,7 +269,7 @@ CSuDoKu__uniqueSolAux(CSuDoKu *self)
             {
                 continue;
             }
-            scount = CSuDoKu__uniqueSolAux(t);
+            scount = CSuDoKu__unique_sol_aux(t);
             if (scount == -2)
             {
                 return -2;
@@ -300,7 +285,7 @@ CSuDoKu__uniqueSolAux(CSuDoKu *self)
 }
 
 static int
-CSuDoKu__uniqueSol(CSuDoKu *self)
+CSuDoKu__unique_sol(CSuDoKu *self)
 {
     int i;
     
@@ -314,7 +299,7 @@ CSuDoKu__uniqueSol(CSuDoKu *self)
         }
     }
     
-    return CSuDoKu__uniqueSolAux(self) != -2;
+    return CSuDoKu__unique_sol_aux(self) != -2;
 }
 
 /******************************************************************************/
@@ -339,21 +324,6 @@ CSuDoKu_debug(CSuDoKu *self, PyObject *args)
 }
 
 static PyObject*
-CSuDoKu_markInput(CSuDoKu *self, PyObject *args)
-{
-    int i, j, n;
-    
-    if (!PyArg_ParseTuple(args, "iii", &i, &j, &n))
-    {
-        return NULL;
-    }
-    
-    self->o[9 * i + j] = n;
-    
-    Py_RETURN_NONE;
-}
-
-static PyObject*
 CSuDoKu_resolve(CSuDoKu *self)
 {
     int i;
@@ -371,7 +341,7 @@ CSuDoKu_resolve(CSuDoKu *self)
     }
     
     /* Step 2 */
-    return CSuDoKu__resolveAux(self);
+    return CSuDoKu__resolve_aux(self);
 }
 
 static PyObject*
@@ -451,7 +421,7 @@ CSuDoKu_generate(CSuDoKu *self)
     {
         n = self->o[order[i]];
         self->o[order[i]] = 0;
-        if (CSuDoKu__uniqueSol(self))
+        if (CSuDoKu__unique_sol(self))
         {
             if (self->d)
             {
@@ -513,7 +483,7 @@ CSuDoKu_init(CSuDoKu *self, PyObject *args, PyObject *kwds)
 }
 
 static PyObject *
-CSuDoKu_get2dArray(int *a)
+CSuDoKu_get2darray(int *a)
 {
     PyObject *v, *r, *c; /* values, row, cell */
     int i, j;
@@ -551,7 +521,7 @@ CSuDoKu_get2dArray(int *a)
 }
 
 static int
-CSuDoKu_set2dArray(int *a, PyObject *v)
+CSuDoKu_set2darray(int *a, PyObject *v)
 {
     PyObject *r, *c;
     int i, j;
@@ -583,25 +553,25 @@ CSuDoKu_set2dArray(int *a, PyObject *v)
 static PyObject *
 CSuDoKu_getv(CSuDoKu *self, void *closure)
 {
-    return CSuDoKu_get2dArray(self->v);
+    return CSuDoKu_get2darray(self->v);
 }
 
 static int
 CSuDoKu_setv(CSuDoKu *self, PyObject *value, void *closure)
 {
-    return CSuDoKu_set2dArray(self->v, value);
+    return CSuDoKu_set2darray(self->v, value);
 }
 
 static PyObject *
 CSuDoKu_geto(CSuDoKu *self, void *closure)
 {
-    return CSuDoKu_get2dArray(self->o);
+    return CSuDoKu_get2darray(self->o);
 }
 
 static int
 CSuDoKu_seto(CSuDoKu *self, PyObject *value, void *closure)
 {
-    return CSuDoKu_set2dArray(self->o, value);
+    return CSuDoKu_set2darray(self->o, value);
 }
 
 /******************************************************************************/

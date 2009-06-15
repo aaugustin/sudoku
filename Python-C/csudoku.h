@@ -2,22 +2,7 @@
  * 
  * Improves the performance of the pure Python version
  * 
- * Copyright (C) 2008 Aymeric Augustin
- * Released under the GPL
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Copyright (C) 2008-2009 Aymeric Augustin
  */
 
 #include <Python.h>
@@ -159,24 +144,21 @@ static int
 CSuDoKu__eliminate(CSuDoKu *self, int i, int n);
 
 static int
-CSuDoKu__searchMin(CSuDoKu *self);
+CSuDoKu__search_min(CSuDoKu *self);
 
 static PyObject*
-CSuDoKu__resolveAux(CSuDoKu *self);
+CSuDoKu__resolve_aux(CSuDoKu *self);
 
 static int
-CSuDoKu__uniqueSolAux(CSuDoKu *self);
+CSuDoKu__unique_sol_aux(CSuDoKu *self);
 
 static int
-CSuDoKu__uniqueSol(CSuDoKu *self);
+CSuDoKu__unique_sol(CSuDoKu *self);
 
 /******************************************************************************/
 
 static PyObject*
 CSuDoKu_debug(CSuDoKu *self, PyObject *args);
-
-static PyObject*
-CSuDoKu_markInput(CSuDoKu *self, PyObject *args);
 
 static PyObject*
 CSuDoKu_resolve(CSuDoKu *self);
@@ -196,10 +178,10 @@ static int
 CSuDoKu_init(CSuDoKu *self, PyObject *args, PyObject *kwds);\
 
 static PyObject *
-CSuDoKu_get2dArray(int *a);
+CSuDoKu_get2darray(int *a);
 
 static int
-CSuDoKu_set2dArray(int *a, PyObject *value);
+CSuDoKu_set2darray(int *a, PyObject *value);
 
 static PyObject *
 CSuDoKu_getv(CSuDoKu *self, void *closure);
@@ -222,7 +204,6 @@ static PyMemberDef CSuDoKu_members[] = {
 
 static PyMethodDef CSuDoKu_methods[] = {
     {"debug",       (PyCFunction)CSuDoKu_debug,     METH_VARARGS, ""},
-    {"markInput",   (PyCFunction)CSuDoKu_markInput, METH_VARARGS, ""},
     {"resolve",     (PyCFunction)CSuDoKu_resolve,   METH_NOARGS,  ""},
     {"generate",    (PyCFunction)CSuDoKu_generate,  METH_NOARGS,  ""},
     {NULL}

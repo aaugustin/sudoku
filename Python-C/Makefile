@@ -1,7 +1,7 @@
 # Makefile for sudoku
 # Copyright (c) 2009 Aymeric Augustin
 
-build:
+build: csudoku.c csudoku.h
 	python setup.py build
 	ln -s build/lib.*/csudoku.so .
 
