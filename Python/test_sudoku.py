@@ -29,7 +29,7 @@ class TestResolutionAndEstimation(unittest.TestCase):
             s.from_string(problem)
             solutions = s.resolve()
             self.assertEqual(len(solutions), 1)
-            self.assertEqual(s.to_string(solutions[0]), solution)
+            self.assertEqual(s.to_string(values=solutions[0]), solution)
             forks.append(s.graph_forks())
             estimations.append(s.estimate())
         self.assertEqual(estimations, sorted(estimations))
@@ -38,7 +38,7 @@ class TestResolutionAndEstimation(unittest.TestCase):
     def testRedundancyIsAllowedInProblems(self):
         problem, solution = sudokus[0]
         s = SuDoKu(problem[:40] + solution[40:])
-        self.assertEqual(s.to_string(s.resolve()[0]), solution)
+        self.assertEqual(s.to_string(values=s.resolve()[0]), solution)
 
     def testContradictionsAreDetectedInProblems(self):
         problem, solution = sudokus[0]
@@ -106,22 +106,43 @@ class TestInput(unittest.TestCase):
 class TestOutput(unittest.TestCase):
 
     def setUp(self):
-        self.problem = sudokus[2][0]
+        self.problem, self.solution = sudokus[0]
         self.s = SuDoKu(self.problem)
+        self.g = self.s.resolve()[0]
 
-    def testToConsole(self):
-        output = re.sub(r'[^1-9_]+', '',
-                        self.s.to_console().replace('   ', ' _ '))
+    def testProblemWithInvalidFormat(self):
+        self.assertRaises(ValueError, self.s.to_string, 'spam')
+
+    def testSolutionWithInvalidFormat(self):
+        self.assertRaises(ValueError, self.s.to_string, 'eggs', self.g)
+
+    def testProblemToConsole(self):
+        output = self.s.to_string('console')
+        output = re.sub(r'[^1-9_]+', '', output.replace('   ', ' _ '))
         self.assertEqual(output, self.problem)
 
-    def testToHtml(self):
-        output = re.sub(r'<.+?>', '', self.s.to_html()).replace('&nbsp;', '_')
+    def testSolutionToConsole(self):
+        output = self.s.to_string('console', self.g)
+        output = re.sub(r'[^1-9_]+', '', output.replace('   ', ' _ '))
+        self.assertEqual(output, self.solution)
+
+    def testProblemToHtml(self):
+        output = self.s.to_string('html')
+        output = re.sub(r'<.+?>', '', output).replace('&nbsp;', '_')
         self.assertEqual(output, self.problem)
 
-    def testToString(self):
-        output = self.s.to_string()
+    def testSolutionToHtml(self):
+        output = self.s.to_string('html', self.g)
+        output = re.sub(r'<.+?>', '', output).replace('&nbsp;', '_')
+        self.assertEqual(output, self.solution)
+
+    def testProblemToString(self):
+        output = self.s.to_string('string')
         self.assertEqual(output, self.problem)
 
+    def testSolutionToString(self):
+        output = self.s.to_string('string', self.g)
+        self.assertEqual(output, self.solution)
 
 if __name__ == '__main__':
     unittest.main()

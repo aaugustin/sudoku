@@ -110,7 +110,7 @@ class SuDoKu(object):
     def resolve_aux(self):
         # If the grid is complete
         if self.n == 81:
-            self.debug('    Found a solution: %s' % self.to_string(self.v))
+            self.debug('    Found a solution: %s' % self.to_string(values=self.v))
             self.g = (self.n, '+')
             return [self.v]
         # Otherwise look for the position that has the least alternatives
@@ -268,7 +268,7 @@ class SuDoKu(object):
             elif c in '_- .0':
                 pass
             else:
-                raise ValueError, 'Invalid caracter: %s' % c
+                raise ValueError, 'Invalid caracter: %s.' % c
             if j < 8:
                 j = j + 1
             else:
@@ -281,38 +281,33 @@ class SuDoKu(object):
     # Output funtions
     #----------------
 
-    def out(self, format='console', values=None):           #pragma: no cover
+    def to_string(self, format='string', values=None):
         if format in ('console', 'html', 'string'):
-            print getattr(self, 'to_' + format)(values)
-        else:
-            raise ValueError, 'Invalid format: %s' % format
+            return getattr(self, '_to_' + format)(values or self.o)
+        raise ValueError, 'Invalid format: %s.' % format
 
-    def to_console(self, values=None):
-        if values is None:
-            values = self.o
-        cells = [[str(c) for c in r] for r in values]
+    def _to_console(self, v):
+        cells = [[str(c) for c in r] for r in v]
         rows = ['| ' + ' | '.join(r) + ' |\n' for r in cells]
         sep = '---'.join([' '] * 10)
         sepnl = sep + '\n'
         return (sepnl + sepnl.join(rows) + sep).replace('0', ' ')
 
-    def to_html(self, values=None):
-        if values is None:
-            values = self.o
-        cells = [['<td>' + str(c) + '</td>' for c in r] for r in values]
+    def _to_html(self, v):
+        cells = [['<td>' + str(c) + '</td>' for c in r] for r in v]
         rows = ['<tr>' + ''.join(r) + '</tr>' for r in cells]
         table = '<table class="sudoku">' + ''.join(rows) + '</table>'
         return table.replace('0', '&nbsp;')
 
-    def to_string(self, values=None):
-        if values is None:
-            values = self.o
-        s =''.join([''.join([str(c) for c in r]) for r in values])
+    def _to_string(self, v):
+        s =''.join([''.join([str(c) for c in r]) for r in v])
         s = s.replace('0', '_')
         return s
 
+# Main
+#-----
 
-if __name__ == '__main__':                                  #pragma: no cover
+def main():                                                 #pragma: no cover
 
     p = OptionParser(usage='usage: %prog [options] [problem]')
     # Actions
@@ -387,17 +382,20 @@ if __name__ == '__main__':                                  #pragma: no cover
     # Execute actions
     if options.resolve:
         for grid in s.resolve():
-            s.out(options.format, grid)
+            print s.to_string(options.format, grid)
         if options.estimate:
             print s.estimate()
 
     if options.generate:
         for i in range(options.count or 1):
             s.generate()
-            s.out(options.format)
+            print s.to_string(options.format)
             if options.estimate:
                 s.resolve()
                 print s.estimate()
 
     if options.show:
-        s.out(options.format)
+        print s.to_string(options.format)
+
+if __name__ == '__main__':                                  #pragma: no cover
+    main()
