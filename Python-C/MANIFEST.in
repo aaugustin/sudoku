@@ -1,0 +1,2 @@
+include benchmark/benchmark_sudoku.py
+include csudoku.h

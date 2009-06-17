@@ -11,8 +11,9 @@ else:
     print 'Usage: %s [C|Python]' % os.path.basename(sys.argv[0])
     sys.exit(2)
 
+puzzles = os.path.join(os.path.dirname(__file__), '95_hard_puzzles')
 stats = []
-for problem in open('../tests/95_hard_puzzles'):
+for problem in open(puzzles):
     t = time.time()
     s = SuDoKu(problem)
     s.resolve()

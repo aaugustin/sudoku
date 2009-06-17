@@ -1,6 +1,9 @@
 # Makefile for sudoku
 # Copyright (c) 2009 Aymeric Augustin
 
+# Avoid copying the resource forks when tar-ing on Mac OS X 10.5
+export COPYFILE_DISABLE=true
+
 build: csudoku.c csudoku.h
 	python setup.py build
 	ln -snf build/lib.*/csudoku.so .
@@ -9,11 +12,11 @@ debug: csudoku.c csudoku.h
 	python setup.py build --debug
 	ln -snf build/lib.*/csudoku.so .
 
-install: build
+install: build setup.py
 	python setup.py install
 
-dist:
-	python setup.py sdist
+dist: setup.py MANIFEST.in
+	python setup.py sdist --force-manifest
 
 clean:
 	python setup.py clean
@@ -23,7 +26,7 @@ clean:
 	rm -f *.pyc
 
 test: build
-	nosetests test_*.py
+	PYTHONPATH=. nosetests test/test_*.py
 
 test-cover: build
-	nosetests --with-coverage --cover-inclusive --cover-erase test_*.py
+	PYTHONPATH=. nosetests --with-coverage --cover-inclusive --cover-erase test/test_*.py
