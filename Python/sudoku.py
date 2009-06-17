@@ -155,7 +155,7 @@ class SuDoKu(object):
     #---------------------
 
     def estimate(self):
-        if not self.e:
+        if not self.e or not hasattr(self, 'g'):
             return
         # Print resolution graph
         if self.d:                                          #pragma: no cover
@@ -195,7 +195,7 @@ class SuDoKu(object):
     #---------------------
 
     def unique_sol_aux(self):
-        # Based on resolve
+        # Simplified version of resolve_aux(self)
         i, j = self.search_min()
         if i == -1:
             return 1
@@ -210,9 +210,10 @@ class SuDoKu(object):
                 count += t.unique_sol_aux()
                 if count > 1:
                     raise MultipleSolutionsFound
-            return count
+            return count # == 0 or 1
 
     def unique_sol(self):
+        # Simplified version of reset(self)
         self.reset()
         for i in range(9):
             for j in range(9):
