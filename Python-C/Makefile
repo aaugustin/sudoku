@@ -25,8 +25,10 @@ clean:
 	rm -f csudoku.so
 	rm -f *.pyc
 
+.PHONY: test
 test: build
-	PYTHONPATH=. nosetests test/test_*.py
+	nosetests test/test_*.py
 
+.PHONY: test-cover
 test-cover: build
-	PYTHONPATH=. nosetests --with-coverage --cover-inclusive --cover-erase test/test_*.py
+	nosetests --with-coverage --cover-inclusive --cover-erase test/test_*.py
