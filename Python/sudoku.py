@@ -15,7 +15,7 @@ class Contradiction(Exception):
     pass
 
 
-class MultipleSolutionsFound(Exception):
+class _MultipleSolutionsFound(Exception):
     pass
 
 
@@ -209,7 +209,7 @@ class SuDoKu(object):
                     continue
                 count += t.unique_sol_aux()
                 if count > 1:
-                    raise MultipleSolutionsFound
+                    raise _MultipleSolutionsFound
             return count # == 0 or 1
 
     def unique_sol(self):
@@ -222,7 +222,7 @@ class SuDoKu(object):
         try:
             self.unique_sol_aux()
             return True
-        except MultipleSolutionsFound:
+        except _MultipleSolutionsFound:
             return False
 
     def generate(self):
