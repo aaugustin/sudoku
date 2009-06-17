@@ -2,6 +2,7 @@
 # Copyright (C) 2008-2009 Aymeric Augustin
 
 import os.path, sys, time
+sys.path[:0] = [os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))]
 
 if len(sys.argv) == 2 and sys.argv[1] == 'C':
     from csudoku import SuDoKu

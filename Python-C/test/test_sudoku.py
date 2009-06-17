@@ -17,7 +17,8 @@ As a consequence, within a test suite, the SuDoKu class must always be
 refered to as self.module.SuDoKu.
 """
 
-import re, unittest, StringIO, sys
+import os.path, re, StringIO, sys, unittest
+sys.path[:0] = [os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))]
 import csudoku, pysudoku
 
 
@@ -45,7 +46,7 @@ class CModule(object):
     module = csudoku
 
 
-class ResolutionAndEstimation(unittest.TestCase):
+class ResolutionAndEstimation(object):
 
     def testResolve(self):
         forks, estimations = [], []
@@ -82,7 +83,7 @@ class ResolutionAndEstimation(unittest.TestCase):
         self.assertNotEqual(output.find(solution), -1)
 
 
-class Generation(unittest.TestCase):
+class Generation(object):
 
     def testGenerate(self):
         s = self.module.SuDoKu()
@@ -91,7 +92,7 @@ class Generation(unittest.TestCase):
         self.assertEqual(len(solutions), 1)
 
 
-class Input(unittest.TestCase):
+class Input(object):
 
     def setUp(self):
         self.problem = sudokus[0][0]
@@ -139,7 +140,7 @@ class Input(unittest.TestCase):
         self.assertEqual(s.o[0][0], s.o[0][1])
 
 
-class Output(unittest.TestCase):
+class Output(object):
 
     def setUp(self):
         self.problem, self.solution = sudokus[0]
@@ -181,35 +182,35 @@ class Output(unittest.TestCase):
         self.assertEqual(output, self.solution)
 
 
-class TestPyResolutionAndEstimation(PyModule, ResolutionAndEstimation):
+class TestPyResolutionAndEstimation(PyModule, ResolutionAndEstimation, unittest.TestCase):
     pass
 
 
-class TestCResolutionAndEstimation(CModule, ResolutionAndEstimation):
+class TestCResolutionAndEstimation(CModule, ResolutionAndEstimation, unittest.TestCase):
     pass
 
 
-class TestPyGeneration(PyModule, Generation):
+class TestPyGeneration(PyModule, Generation, unittest.TestCase):
     pass
 
 
-class TestCGeneration(CModule, Generation):
+class TestCGeneration(CModule, Generation, unittest.TestCase):
     pass
 
 
-class TestPyInput(PyModule, Input):
+class TestPyInput(PyModule, Input, unittest.TestCase):
     pass
 
 
-class TestCInput(CModule, Input):
+class TestCInput(CModule, Input, unittest.TestCase):
     pass
 
 
-class TestPyOutput(PyModule, Output):
+class TestPyOutput(PyModule, Output, unittest.TestCase):
     pass
 
 
-class TestCOutput(CModule, Output):
+class TestCOutput(CModule, Output, unittest.TestCase):
     pass
 
 
