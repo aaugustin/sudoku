@@ -3,9 +3,13 @@
 
 build: csudoku.c csudoku.h
 	python setup.py build
-	ln -s build/lib.*/csudoku.so .
+	ln -snf build/lib.*/csudoku.so .
 
-install:
+debug: csudoku.c csudoku.h
+	python setup.py build --debug
+	ln -snf build/lib.*/csudoku.so .
+
+install: build
 	python setup.py install
 
 dist:
@@ -13,11 +17,13 @@ dist:
 
 clean:
 	python setup.py clean
-	rm csudoku.so
-	rm *.pyc
+	rm -rf build
+	rm -rf dist
+	rm -f csudoku.so
+	rm -f *.pyc
 
-test:
+test: build
 	nosetests test_*.py
 
-test-cover:
+test-cover: build
 	nosetests --with-coverage --cover-inclusive --cover-erase test_*.py
