@@ -12,7 +12,6 @@ for problem in open('../tests/95_hard_puzzles'):
     t = time.time() - t
     l, f = s.estimate()
     stats.append((t, l, f))
-    break
 
 print "test\ttime\tlevel\tforks"
 print "-----------------------------"

@@ -2,7 +2,7 @@
 # Copyright (C) 2008-2009 Aymeric Augustin
 
 
-import re, unittest
+import re, unittest, StringIO
 from sudoku import *
 
 
@@ -25,8 +25,7 @@ class TestResolutionAndEstimation(unittest.TestCase):
     def testResolve(self):
         forks, estimations = [], []
         for problem, solution in sudokus:
-            s = SuDoKu()
-            s.from_string(problem)
+            s = SuDoKu(problem)
             solutions = s.resolve()
             self.assertEqual(len(solutions), 1)
             self.assertEqual(s.to_string(values=solutions[0]), solution)
@@ -43,6 +42,19 @@ class TestResolutionAndEstimation(unittest.TestCase):
         s = SuDoKu('66' + problem[2:])
         self.assertRaises(Contradiction, s.resolve)
 
+    def testEstimationCanBeDisabled(self):
+        s = SuDoKu(sudokus[0][0], estimate=False)
+        s.resolve()
+        self.assertEqual(None, s.estimate())
+
+    def testDebugCanBeEnabled(self):
+        problem, solution = sudokus[0]
+        s = SuDoKu(problem, debug=True)
+        sys.stdout = StringIO.StringIO()
+        s.resolve()
+        output = sys.stdout.getvalue()
+        sys.stdout = sys.__stdout__
+        self.assertNotEqual(output.find(solution), -1)
 
 class TestGeneration(unittest.TestCase):
 

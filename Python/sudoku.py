@@ -5,7 +5,7 @@
 """SuDoKu generator and solver"""
 
 
-from __future__ import with_statement
+from __future__ import division, with_statement
 
 import copy, math, random, sys
 from optparse import OptionParser
@@ -24,11 +24,13 @@ class SuDoKu(object):
     # precompute relation map
     relations = [[[(k, l) for k in range(9) for l in range(9) if (k == i or l == j or (k // 3 == i // 3 and l // 3 == j // 3)) and not (k == i and l == j)] for j in range(9)] for i in range(9)]
 
-    def __init__(self, problem=None, debug=False):
+    def __init__(self, problem=None, estimate=True, debug=False):
         # initial values: 1..9 or 0 = undefined
         self.o = [[0 for j in range(9)] for i in range(9)]
         if problem is not None:
             self.from_string(problem)
+        # set to false to disable complexity estimation
+        self.e = estimate
         # set to true to enable verbose debugging
         self.d = debug
 
@@ -48,7 +50,8 @@ class SuDoKu(object):
         self.n = 0
 
         # Statistics: graph of resolution paths
-        self.g = None
+        if self.e:
+            self.g = None
 
     # Resolution functions
     #---------------------
@@ -61,7 +64,8 @@ class SuDoKu(object):
         # Check that the value is possible
         if self.p[i][j].count(n) == 0:
             self.debug('    Attempt to assign %d at (%d, %d) which is forbidden' % (n, i, j))
-            self.g = (self.n, '-')
+            if self.e:
+                self.g = (self.n, '-')
             raise Contradiction
         # Record the value
         self.v[i][j] = n
@@ -89,7 +93,8 @@ class SuDoKu(object):
         # If there's no possible value, we are on a wrong branch
         if len(self.p[i][j]) == 0:
             self.debug('    Impossibility at (%d, %d), search depth = %d' % (i, j, self.n))
-            self.g = (self.n, '-')
+            if self.e:
+                self.g = (self.n, '-')
             raise Contradiction
         # If there's one possible value, we mark it
         elif len(self.p[i][j]) == 1:
@@ -110,23 +115,27 @@ class SuDoKu(object):
         # If the grid is complete
         if self.n == 81:
             self.debug('    Found a solution: %s' % self.to_string(values=self.v))
-            self.g = (self.n, '+')
+            if self.e:
+                self.g = (self.n, '+')
             return [self.v]
         # Otherwise look for the position that has the least alternatives
         i, j = self.search_min()
         # Try each alternative
         r = []
-        self.g = (self.n, [])
+        if self.e:
+            self.g = (self.n, [])
         for n in self.p[i][j]:
             self.debug('Trying %d at (%d, %d), search depth = %d' % (n, i, j, self.n))
             t = copy.deepcopy(self)
             try:
                 t.mark(i, j, n)
             except Contradiction:
-                self.g[1].append(t.g)
+                if self.e:
+                    self.g[1].append(t.g)
                 continue
             r.extend(t.resolve_aux())
-            self.g[1].append(t.g)
+            if self.e:
+                self.g[1].append(t.g)
         return r
 
     def resolve(self):
@@ -146,13 +155,15 @@ class SuDoKu(object):
     #---------------------
 
     def estimate(self):
+        if not self.e:
+            return
         # Print resolution graph
         if self.d:                                          #pragma: no cover
             self._print_graph()
-        # Compute "graph length"
+        # Compute complexity
         return (math.log(self._graph_len() / 81) + 1), self._graph_forks()
 
-    def _print_graph(self, g=None, p=''):                    #pragma: no cover
+    def _print_graph(self, g=None, p=''):                   #pragma: no cover
         if g is None:
             g = self.g
         if isinstance(g[1], list):
@@ -346,7 +357,7 @@ def main():                                                 #pragma: no cover
                                   options.estimate, options.show])
 
     # Read problem if necessary
-    s = SuDoKu(debug=options.debug)
+    s = SuDoKu(estimate=options.estimate, debug=options.debug)
     if resolve_by_default or options.resolve or options.show:
         if len(args) == 1:
             s.from_string(args[0])
