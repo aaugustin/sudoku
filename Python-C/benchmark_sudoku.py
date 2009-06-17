@@ -1,23 +1,30 @@
 #!/usr/bin/env python
 # Copyright (C) 2008-2009 Aymeric Augustin
 
-import sudoku, time
+import os.path, sys, time
+
+if len(sys.argv) == 2 and sys.argv[1] == 'C':
+    from csudoku import SuDoKu
+elif len(sys.argv) == 2 and sys.argv[1] == 'Python':
+    from pysudoku import SuDoKu
+else:
+    print 'Usage: %s [C|Python]' % os.path.basename(sys.argv[0])
+    sys.exit(2)
 
 stats = []
 for problem in open('../tests/95_hard_puzzles'):
     t = time.time()
-    s = sudoku.SuDoKu()
-    s.from_string(problem)
+    s = SuDoKu(problem)
     s.resolve()
     t = time.time() - t
-    d = s.graph_forks()
-    stats.append((t, d))
+    l, f = s.estimate()
+    stats.append((t, l, f))
 
-print "test\ttime\tforks"
-print "---------------------"
-for i, (t, d) in enumerate(stats):
-    print "%d\t%.2f\t%d" % (i + 1, t, d)
-print "---------------------"
+print "test\ttime\tlevel\tforks"
+print "-----------------------------"
+for i, (t, l, f) in enumerate(stats):
+    print "%d\t%.3f\t%.3f\t%d" % (i + 1, t, l, f)
+print "-----------------------------"
 
 times = map(lambda x: x[0], stats)
 print "Problems solved:     %d" % len(times)

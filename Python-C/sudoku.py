@@ -2,19 +2,26 @@
 # Copyright (C) 2008-2009 Aymeric Augustin
 
 
-"""SuDoKu generator and solver"""
+"""Command-line interface to the SuDoKu solver and generator.
+
+If the C version of the SuDoKu class is available, it will be used. Otherwise,
+the pure Python version will be used.
+"""
 
 
 from __future__ import with_statement
 
-import copy, math, random, sys
-from optparse import OptionParser
-from csudoku import SuDoKu, Contradiction
+import optparse, sys
+
+try:
+    from csudoku import SuDoKu, Contradiction
+except ImportError:
+    from pysudoku import SuDoKu, Contradiction
 
 
-def main():                                                 #pragma: no cover
+def main():
 
-    p = OptionParser(usage='usage: %prog [options] [problem]')
+    p = optparse.OptionParser(usage='usage: %prog [options] [problem]')
     # Actions
     p.add_option('-r', '--resolve',
                  action='store_true', default=False, dest='resolve',
@@ -53,7 +60,7 @@ def main():                                                 #pragma: no cover
                                   options.estimate, options.show])
 
     # Read problem if necessary
-    s = SuDoKu(debug=options.debug)
+    s = SuDoKu(estimate=options.estimate, debug=options.debug)
     if resolve_by_default or options.resolve or options.show:
         if len(args) == 1:
             s.from_string(args[0])
@@ -87,20 +94,20 @@ def main():                                                 #pragma: no cover
     # Execute actions
     if options.resolve:
         for grid in s.resolve():
-            s.out(options.format, grid)
+            print s.to_string(options.format, grid)
         if options.estimate:
             print s.estimate()
 
     if options.generate:
         for i in range(options.count or 1):
             s.generate()
-            s.out(options.format)
+            print s.to_string(options.format)
             if options.estimate:
                 s.resolve()
                 print s.estimate()
 
     if options.show:
-        s.out(options.format)
+        print s.to_string(options.format)
 
 if __name__ == '__main__':
     main()

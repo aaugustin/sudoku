@@ -2,8 +2,23 @@
 # Copyright (C) 2008-2009 Aymeric Augustin
 
 
-import re, unittest, StringIO
-from sudoku import *
+"""Tests for the Python and C implementations of the SuDoKu class.
+
+This testing suite is designed to run the same tests on the Python and C
+implementations. The public methods of either class must behave identically.
+
+Therefore, each test class mixes two classes:
+  - A class that determines whether the Python or the C implementation will
+    be used, by setting the module class variable.
+  - A test suite, extending unittest.TestCase, that groups test related
+    to a give topic: resolution, generation, input or output ;
+
+As a consequence, within a test suite, the SuDoKu class must always be
+refered to as self.module.SuDoKu.
+"""
+
+import re, unittest, StringIO, sys
+import csudoku, pysudoku
 
 
 sudokus = (
@@ -20,12 +35,22 @@ sudokus = (
 )
 
 
-class TestResolutionAndEstimation(unittest.TestCase):
+class PyModule(object):
+
+    module = pysudoku
+
+
+class CModule(object):
+
+    module = csudoku
+
+
+class ResolutionAndEstimation(unittest.TestCase):
 
     def testResolve(self):
         forks, estimations = [], []
         for problem, solution in sudokus:
-            s = SuDoKu(problem)
+            s = self.module.SuDoKu(problem)
             solutions = s.resolve()
             self.assertEqual(len(solutions), 1)
             self.assertEqual(s.to_string(values=solutions[0]), solution)
@@ -34,67 +59,68 @@ class TestResolutionAndEstimation(unittest.TestCase):
 
     def testRedundancyIsAllowedInProblems(self):
         problem, solution = sudokus[0]
-        s = SuDoKu(problem[:40] + solution[40:])
+        s = self.module.SuDoKu(problem[:40] + solution[40:])
         self.assertEqual(s.to_string(values=s.resolve()[0]), solution)
 
     def testContradictionsAreDetectedInProblems(self):
         problem, solution = sudokus[0]
-        s = SuDoKu('66' + problem[2:])
-        self.assertRaises(Contradiction, s.resolve)
+        s = self.module.SuDoKu('66' + problem[2:])
+        self.assertRaises(self.module.Contradiction, s.resolve)
 
     def testEstimationCanBeDisabled(self):
-        s = SuDoKu(sudokus[0][0], estimate=False)
+        s = self.module.SuDoKu(sudokus[0][0], estimate=False)
         s.resolve()
         self.assertEqual(None, s.estimate())
 
     def testDebugCanBeEnabled(self):
         problem, solution = sudokus[0]
-        s = SuDoKu(problem, debug=True)
+        s = self.module.SuDoKu(problem, debug=True)
         sys.stdout = StringIO.StringIO()
         s.resolve()
         output = sys.stdout.getvalue()
         sys.stdout = sys.__stdout__
         self.assertNotEqual(output.find(solution), -1)
 
-class TestGeneration(unittest.TestCase):
+
+class Generation(unittest.TestCase):
 
     def testGenerate(self):
-        s = SuDoKu()
+        s = self.module.SuDoKu()
         s.generate()
         solutions = s.resolve()
         self.assertEqual(len(solutions), 1)
 
 
-class TestInput(unittest.TestCase):
+class Input(unittest.TestCase):
 
     def setUp(self):
         self.problem = sudokus[0][0]
 
     def testFromStringSavesValuesInOriginalArray(self):
-        s = SuDoKu(self.problem)
+        s = self.module.SuDoKu(self.problem)
         self.assertEqual(s.o[0][0], 0)
         self.assertEqual(s.o[0][2], 6)
         self.assertEqual(s.o[2][4], 3)
         self.assertEqual(s.o[8][5], 9)
 
     def testFromStringAcceptsLineBreaks(self):
-        s = SuDoKu(self.problem)
+        s = self.module.SuDoKu(self.problem)
         lines = [self.problem[i:i+9] for i in range(0, 81, 9)]
-        t = SuDoKu('\n'.join(lines))
+        t = self.module.SuDoKu(''.join(map(lambda l: l + '\n', lines)))
         self.assertEqual(t.o, s.o)
-        t = SuDoKu('\r\n'.join(lines))
+        t = self.module.SuDoKu(''.join(map(lambda l: l + '\r\n', lines)))
         self.assertEqual(t.o, s.o)
-        t = SuDoKu('\r'.join(lines))
+        t = self.module.SuDoKu(''.join(map(lambda l: l + '\r', lines)))
         self.assertEqual(t.o, s.o)
 
     def testFromStringAcceptsSeveralCharactersToMarkEmptyCells(self):
-        s = SuDoKu(self.problem)
+        s = self.module.SuDoKu(self.problem)
         altered = (self.problem[:20].replace('_', '-')
                  + self.problem[20:40].replace('_', ' ')
                  + self.problem[40:60].replace('_', '.')
                  + self.problem[60:].replace('_', '0')
                   )
-        t = SuDoKu(altered)
+        t = self.module.SuDoKu(altered)
         self.assertEqual(t.o, s.o)
 
     def testFromStringRejectsOtherCharacters(self):
@@ -102,22 +128,22 @@ class TestInput(unittest.TestCase):
             if chr(i) in '123456789\r\n_- .0':
                 continue
             altered = chr(i) + self.problem[1:]
-            self.assertRaises(ValueError, SuDoKu, altered)
+            self.assertRaises(ValueError, self.module.SuDoKu, altered)
 
     def testFromStringChecksInputLength(self):
-        self.assertRaises(ValueError, SuDoKu, self.problem + '_')
-        self.assertRaises(ValueError, SuDoKu, self.problem[:-1])
+        self.assertRaises(ValueError, self.module.SuDoKu, self.problem + '_')
+        self.assertRaises(ValueError, self.module.SuDoKu, self.problem[:-1])
 
     def testFromStringDoesNotEnforceRules(self):
-        s = SuDoKu('66' + self.problem[2:])
+        s = self.module.SuDoKu('66' + self.problem[2:])
         self.assertEqual(s.o[0][0], s.o[0][1])
 
 
-class TestOutput(unittest.TestCase):
+class Output(unittest.TestCase):
 
     def setUp(self):
         self.problem, self.solution = sudokus[0]
-        self.s = SuDoKu(self.problem)
+        self.s = self.module.SuDoKu(self.problem)
         self.g = self.s.resolve()[0]
 
     def testProblemWithInvalidFormat(self):
@@ -153,6 +179,39 @@ class TestOutput(unittest.TestCase):
     def testSolutionToString(self):
         output = self.s.to_string('string', self.g)
         self.assertEqual(output, self.solution)
+
+
+class TestPyResolutionAndEstimation(PyModule, ResolutionAndEstimation):
+    pass
+
+
+class TestCResolutionAndEstimation(CModule, ResolutionAndEstimation):
+    pass
+
+
+class TestPyGeneration(PyModule, Generation):
+    pass
+
+
+class TestCGeneration(CModule, Generation):
+    pass
+
+
+class TestPyInput(PyModule, Input):
+    pass
+
+
+class TestCInput(CModule, Input):
+    pass
+
+
+class TestPyOutput(PyModule, Output):
+    pass
+
+
+class TestCOutput(CModule, Output):
+    pass
+
 
 if __name__ == '__main__':
     unittest.main()
