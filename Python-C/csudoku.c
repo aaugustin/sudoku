@@ -358,16 +358,23 @@ SuDoKu__from_string(SuDoKu *self, const char *s, const int l)
     char c;
     char err_msg[32];
 
-    for (i = k = 0; i < 81 && k < l; k++)
+    i = 0;
+    for (k = 0; k < l; k++)
     {
         c = s[k];
-        if (c >= '1' && c <= '9')
+        if (c == '\n' || c == '\r')
+        {
+            // ignore non-significant characters
+            continue;
+        }
+        else if (i >= 81)
+        {
+            // must be checked here to allow trailing whitespace
+            break;
+        }
+        else if (c >= '1' && c <= '9')
         {
             self->o[i] = (int)c - (int)'0';
-        }
-        else if (c == '\n' || c == '\r')
-        {
-            continue;
         }
         else if (c == '_' || c == '-' || c == ' ' || c == '.' || c == '0')
         {
