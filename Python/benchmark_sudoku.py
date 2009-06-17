@@ -10,14 +10,15 @@ for problem in open('../tests/95_hard_puzzles'):
     s.from_string(problem)
     s.resolve()
     t = time.time() - t
-    d = s.graph_forks()
-    stats.append((t, d))
+    l, f = s.estimate()
+    stats.append((t, l, f))
+    break
 
-print "test\ttime\tforks"
-print "---------------------"
-for i, (t, d) in enumerate(stats):
-    print "%d\t%.2f\t%d" % (i + 1, t, d)
-print "---------------------"
+print "test\ttime\tlevel\tforks"
+print "-----------------------------"
+for i, (t, l, f) in enumerate(stats):
+    print "%d\t%.3f\t%.3f\t%d" % (i + 1, t, l, f)
+print "-----------------------------"
 
 times = map(lambda x: x[0], stats)
 print "Problems solved:     %d" % len(times)

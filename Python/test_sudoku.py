@@ -30,10 +30,8 @@ class TestResolutionAndEstimation(unittest.TestCase):
             solutions = s.resolve()
             self.assertEqual(len(solutions), 1)
             self.assertEqual(s.to_string(values=solutions[0]), solution)
-            forks.append(s.graph_forks())
             estimations.append(s.estimate())
         self.assertEqual(estimations, sorted(estimations))
-        self.assertEqual(forks, sorted(forks))
 
     def testRedundancyIsAllowedInProblems(self):
         problem, solution = sudokus[0]

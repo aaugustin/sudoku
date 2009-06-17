@@ -44,11 +44,10 @@ class SuDoKu(object):
         self.p = [[range(1, 10) for j in range(9)] for i in range(9)]
         # queue of positions for which the value is known
         self.q = []
-
-        # Statistics
         # number of known values
         self.n = 0
-        # graph of resolution paths
+
+        # Statistics: graph of resolution paths
         self.g = None
 
     # Resolution functions
@@ -146,41 +145,40 @@ class SuDoKu(object):
     # Estimation functions
     #---------------------
 
-    def print_graph(self, g=None, p=''):                    #pragma: no cover
+    def estimate(self):
+        # Print resolution graph
+        if self.d:                                          #pragma: no cover
+            self._print_graph()
+        # Compute "graph length"
+        return (math.log(self._graph_len() / 81) + 1), self._graph_forks()
+
+    def _print_graph(self, g=None, p=''):                    #pragma: no cover
         if g is None:
             g = self.g
         if isinstance(g[1], list):
             print p + str(g[0]).zfill(2)
             for sg in g[1]:
-                self.print_graph(sg, '  ' + p)
+                self._print_graph(sg, '  ' + p)
         else:
             print p + str(g[0]).zfill(2) + ' ' + g[1]
 
-    def graph_len(self, g=None, d=0):
+    def _graph_len(self, g=None, d=0):
         if g is None:
             g = self.g
         l = g[0] - d
         if isinstance(g[1], list):
             for sg in g[1]:
-                l += self.graph_len(sg, g[0])
+                l += self._graph_len(sg, g[0])
         return l
 
-    def graph_forks(self, g=None):
+    def _graph_forks(self, g=None):
         if g is None:
             g = self.g
         f = 0
         if isinstance(g[1], list):
             for sg in g[1]:
-                f += self.graph_forks(sg) + 1
+                f += self._graph_forks(sg) + 1
         return f
-
-    def estimate(self):
-        # Print resolution graph
-        if self.d:                                          #pragma: no cover
-            self.print_graph()
-        # Compute "graph length"
-        l = self.graph_len()
-        return math.log(l / 81) + 1
 
     # Generation functions
     #---------------------
