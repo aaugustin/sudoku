@@ -38,7 +38,7 @@ class SuDoKu(object):
         if self.d:
             print msg
 
-    def reset(self):
+    def _reset(self):
         # Resolution
         # computed values: 1..9 or 0 = undefined
         self.v = [[0 for j in range(9)] for i in range(9)]
@@ -56,7 +56,7 @@ class SuDoKu(object):
     # Resolution functions
     #---------------------
 
-    def mark(self, i, j, n):
+    def _mark(self, i, j, n):
         # Ignore if the position is already marked
         # This allows redundancy in the problems
         if self.v[i][j] == n:
@@ -74,13 +74,13 @@ class SuDoKu(object):
         self.p[i][j] = []
         # Apply rules
         for (k, l) in SuDoKu.relations[i][j]:
-            self.eliminate(k, l, n)
+            self._eliminate(k, l, n)
         # Apply recursively
         if len(self.q) > 0:
             i, j, n = self.q.pop(0)
-            self.mark(i, j, n)
+            self._mark(i, j, n)
 
-    def eliminate(self, i, j, n):
+    def _eliminate(self, i, j, n):
         # Remove the element from the list of possible values
         try:
             self.p[i][j].remove(n)
@@ -100,7 +100,7 @@ class SuDoKu(object):
         elif len(self.p[i][j]) == 1:
             self.q.append((i, j, self.p[i][j][0]))
 
-    def search_min(self):
+    def _search_min(self):
         im = jm = -1
         lm = 10
         for i in range(9):
@@ -111,7 +111,7 @@ class SuDoKu(object):
                     lm = len(self.p[i][j])
         return im, jm
 
-    def resolve_aux(self):
+    def _resolve_aux(self):
         # If the grid is complete
         if self.n == 81:
             self.debug('    Found a solution: %s' % self.to_string(values=self.v))
@@ -119,7 +119,7 @@ class SuDoKu(object):
                 self.g = (self.n, '+')
             return [self.v]
         # Otherwise look for the position that has the least alternatives
-        i, j = self.search_min()
+        i, j = self._search_min()
         # Try each alternative
         r = []
         if self.e:
@@ -128,40 +128,31 @@ class SuDoKu(object):
             self.debug('Trying %d at (%d, %d), search depth = %d' % (n, i, j, self.n))
             t = copy.deepcopy(self)
             try:
-                t.mark(i, j, n)
+                t._mark(i, j, n)
             except Contradiction:
                 if self.e:
                     self.g[1].append(t.g)
                 continue
-            r.extend(t.resolve_aux())
+            r.extend(t._resolve_aux())
             if self.e:
                 self.g[1].append(t.g)
         return r
 
     def resolve(self):
         # Step 0: initialize for resolution
-        self.reset()
+        self._reset()
 
         # Step 1: complete all trivial stuff
         for i in range(9):
             for j in range(9):
                 if self.o[i][j] > 0:
-                    self.mark(i, j, self.o[i][j])
+                    self._mark(i, j, self.o[i][j])
 
         # Step 2: explore different paths
-        return self.resolve_aux()
+        return self._resolve_aux()
 
     # Estimation functions
     #---------------------
-
-    def estimate(self):
-        if not self.e or not hasattr(self, 'g'):
-            return
-        # Print resolution graph
-        if self.d:                                          #pragma: no cover
-            self._print_graph()
-        # Compute complexity
-        return (math.log(self._graph_len() / 81) + 1), self._graph_forks()
 
     def _print_graph(self, g=None, p=''):                   #pragma: no cover
         if g is None:
@@ -191,12 +182,21 @@ class SuDoKu(object):
                 f += self._graph_forks(sg) + 1
         return f
 
+    def estimate(self):
+        if not self.e or not hasattr(self, 'g'):
+            return
+        # Print resolution graph
+        if self.d:                                          #pragma: no cover
+            self._print_graph()
+        # Compute complexity
+        return (math.log(self._graph_len() / 81) + 1), self._graph_forks()
+
     # Generation functions
     #---------------------
 
-    def unique_sol_aux(self):
-        # Simplified version of resolve_aux(self)
-        i, j = self.search_min()
+    def _unique_sol_aux(self):
+        # Simplified version of _resolve_aux(self)
+        i, j = self._search_min()
         if i == -1:
             return 1
         else:
@@ -204,30 +204,30 @@ class SuDoKu(object):
             for n in self.p[i][j]:
                 t = copy.deepcopy(self)
                 try:
-                    t.mark(i, j, n)
+                    t._mark(i, j, n)
                 except Contradiction:
                     continue
-                count += t.unique_sol_aux()
+                count += t._unique_sol_aux()
                 if count > 1:
                     raise _MultipleSolutionsFound
             return count # == 0 or 1
 
-    def unique_sol(self):
-        # Simplified version of reset(self)
-        self.reset()
+    def _unique_sol(self):
+        # Simplified version of resolve(self)
+        self._reset()
         for i in range(9):
             for j in range(9):
                 if self.o[i][j] > 0:
-                    self.mark(i, j, self.o[i][j])
+                    self._mark(i, j, self.o[i][j])
         try:
-            self.unique_sol_aux()
+            self._unique_sol_aux()
             return True
         except _MultipleSolutionsFound:
             return False
 
     def generate(self):
         # Step 0: initialize for generation
-        self.reset()
+        self._reset()
 
         # Step 1: generate problem
         self.debug('Generating a random grid...')
@@ -237,12 +237,12 @@ class SuDoKu(object):
         while True:
             try:
                 count += 1
-                self.reset()
+                self._reset()
                 for i, j in order:
                     if self.v[i][j] > 0:
                         continue
                     else:
-                        self.mark(i, j, random.choice(self.p[i][j]))
+                        self._mark(i, j, random.choice(self.p[i][j]))
                 break
             except Contradiction:
                 continue
@@ -257,7 +257,7 @@ class SuDoKu(object):
         for i, j in order:
             n = self.o[i][j]
             self.o[i][j] = 0
-            if self.unique_sol():
+            if self._unique_sol():
                 self.debug('    Removing %d at (%d, %d)' % (n, i, j))
             else:
                 self.debug('    Keeping %d at (%d, %d)' % (n, i, j))
