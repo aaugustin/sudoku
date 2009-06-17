@@ -1,19 +1,21 @@
 /* SuDoKu solving library
- * 
+ *
  * Improves the performance of the pure Python version
- * 
- * Copyright (C) 2008-2009 Aymeric Augustin
+ *
+ * Copyright (c) 2008-2009 Aymeric Augustin
+   # Copyright (c) 2008-2009 Aymeric Augustin
  */
 
 #include "csudoku.h"
+#include "math.h"
 
 /******************************************************************************/
 
 static int
-CSuDoKu__reset(CSuDoKu *self)
+SuDoKu__reset(SuDoKu *self)
 {
     int i;
-    
+
     /* resolution */
     for (i = 0; i < 81; i++)
     {
@@ -24,18 +26,18 @@ CSuDoKu__reset(CSuDoKu *self)
     }
     self->q_i = 0;
     self->q_o = 0;
-    
-    /* statistics */
     self->n = 0;
+
+    /* statistics */
     Py_XDECREF(self->g);
     Py_INCREF(Py_None);
     self->g = Py_None;
-    
+
     return 0;
 }
 
 static int
-CSuDoKu__copy(CSuDoKu *self, CSuDoKu *t)
+SuDoKu__copy(SuDoKu *self, SuDoKu *t)
 {
     memcpy(t->o, self->o, 81 * sizeof(int));
     memcpy(t->v, self->v, 81 * sizeof(int));
@@ -45,48 +47,57 @@ CSuDoKu__copy(CSuDoKu *self, CSuDoKu *t)
     t->q_i = self->q_i;
     t->q_o = self->q_o;
     t->n = self->n;
+
     /* self->g is not copied; that does not matter for the algorithm */
     Py_XDECREF(t->g);
     Py_INCREF(Py_None);
     t->g = Py_None;
+
+#ifdef DEBUG
     t->d = self->d;
+#endif
+
     return 0;
 }
 
 static int
-CSuDoKu__mark(CSuDoKu *self, int i, int n)
+SuDoKu__mark(SuDoKu *self, int i, int n)
 {
     int *rel, p, j;
-    
+
     if (self->v[i] == n)
     {
         return 0;
     }
+
     if (!((self->p[i] >> n) & 1))
     {
+#ifdef DEBUG
         if (self->d)
         {
             printf("    Attempt to assign %d at (%d, %d) which is forbidden\n", n, i / 9, i % 9);
         }
+#endif
+        // XXXXX Safe ?
         Py_DECREF(self->g);
         self->g = Py_BuildValue("ic", self->n, '-');
         return -2;
     }
-    
+
     self->v[i] = n;
     self->n += 1;
     self->p[i] = 0;
     self->c[i] = 0;
-    
-    rel = CSuDoKu_relations[i];
+
+    rel = SuDoKu_relations[i];
     for (j = 0; j < 20; j++)
     {
-        if (CSuDoKu__eliminate(self, rel[j], n) == -2)
+        if (SuDoKu__eliminate(self, rel[j], n) == -2)
         {
             return -2;
         }
     }
-    
+
     while (self->q_o < self->q_i)
     {
         i = self->q[self->q_o];
@@ -102,7 +113,7 @@ CSuDoKu__mark(CSuDoKu *self, int i, int n)
             p >>= 1;
             n += 1;
         }
-        if (CSuDoKu__mark(self, i, n) == -2)
+        if (SuDoKu__mark(self, i, n) == -2)
         {
             return -2;
         }
@@ -111,7 +122,7 @@ CSuDoKu__mark(CSuDoKu *self, int i, int n)
 }
 
 static int
-CSuDoKu__eliminate(CSuDoKu *self, int i, int n)
+SuDoKu__eliminate(SuDoKu *self, int i, int n)
 {
     if ((self->p[i] >> n) & 1)
     {
@@ -119,10 +130,12 @@ CSuDoKu__eliminate(CSuDoKu *self, int i, int n)
         self->c[i] -= 1;
         if (self->c[i] == 0)
         {
+#ifdef DEBUG
             if (self->d)
             {
                 printf("    Impossibility at (%d, %d), search depth = %d\n", i / 9, i % 9, self->n);
             }
+#endif
             Py_DECREF(self->g);
             self->g = Py_BuildValue("ic", self->n, '-');
             return -2;
@@ -133,16 +146,16 @@ CSuDoKu__eliminate(CSuDoKu *self, int i, int n)
             self->q_i += 1;
             return 0;
         }
-    
+
     }
     return 0;
 }
 
 static int
-CSuDoKu__search_min(CSuDoKu *self)
+SuDoKu__search_min(SuDoKu *self)
 {
     int i, im, cm;
-    
+
     im = -1;
     cm = 10;
     for (i = 0; i < 81; i++)
@@ -157,21 +170,22 @@ CSuDoKu__search_min(CSuDoKu *self)
 }
 
 static PyObject*
-CSuDoKu__resolve_aux(CSuDoKu *self)
+SuDoKu__resolve_aux(SuDoKu *self)
 {
     PyObject *res, *sres, *grid, *sg;
-    CSuDoKu *t;
+    SuDoKu *t;
     int i, n, x;
-    
+
     res = PyList_New(0);
     if (res == NULL)
     {
         Py_DECREF(res);
         return NULL;
     }
-    
+
     if (self->n == 81)
     {
+#ifdef DEBUG
         if (self->d)
         {
             printf("    Found a solution: ");
@@ -181,36 +195,39 @@ CSuDoKu__resolve_aux(CSuDoKu *self)
             }
             printf("\n");
         }
+#endif
         Py_DECREF(self->g);
         self->g = Py_BuildValue("ic", self->n, '+');
-        if (PyList_Append(res, CSuDoKu_get2darray(self->v)) < 0)
+        if (PyList_Append(res, SuDoKu_get2darray(self->v)) < 0)
         {
             return NULL;
         }
         return res;
     }
-    
-    i = CSuDoKu__search_min(self);
-    
-    t = (CSuDoKu*)PyType_GenericNew(&CSuDoKuType, NULL, NULL);
-    
+
+    i = SuDoKu__search_min(self);
+
+    t = (SuDoKu*)PyType_GenericNew(&SuDoKuType, NULL, NULL);
+
     sg = PyList_New(0);
     if (sg == NULL)
     {
         Py_DECREF(sg);
         return NULL;
     }
-    
+
     for (n = 1; n < 10; n++)
     {
         if ((self->p[i] >> n) & 1)
         {
+#ifdef DEBUG
             if (self->d)
             {
                 printf("Trying %d at (%d, %d), search depth = %d\n", n, i / 9, i % 9, self->n);
             }
-            CSuDoKu__copy(self, t);
-            if (CSuDoKu__mark(t, i, n) == -2)
+#endif
+            SuDoKu__copy(self, t);
+            if (SuDoKu__mark(t, i, n) == -2)
             {
                 if (PyList_Append(sg, t->g))
                 {
@@ -218,7 +235,7 @@ CSuDoKu__resolve_aux(CSuDoKu *self)
                 }
                 continue;
             }
-            sres = CSuDoKu__resolve_aux(t);
+            sres = SuDoKu__resolve_aux(t);
             for (x = 0; x < PyList_Size(sres); x++)
             {
                 grid = PyList_GetItem(sres, x);
@@ -237,39 +254,71 @@ CSuDoKu__resolve_aux(CSuDoKu *self)
             }
         }
     }
-    
+
     Py_DECREF(self->g);
     self->g = Py_BuildValue("iO", self->n, sg);
-    
+
     return res;
 }
 
+#ifdef DEBUG
 static int
-CSuDoKu__unique_sol_aux(CSuDoKu *self)
+SuDoKu__print_graph(PyObject *g)
 {
-    CSuDoKu *t;
+    return SuDoKu__print_graph_aux(g, "");
+}
+
+static int
+SuDoKu__print_graph_aux(PyObject *g, char *p)
+{
+    return 0;
+}
+#endif
+
+static int
+SuDoKu__graph_len(PyObject *g)
+{
+    return SuDoKu__graph_len_aux(g, 0);
+}
+
+static int
+SuDoKu__graph_len_aux(PyObject *g, int d)
+{
+    return 0;
+}
+
+static int
+SuDoKu__graph_forks(PyObject *g)
+{
+    return 0;
+}
+
+static int
+SuDoKu__unique_sol_aux(SuDoKu *self)
+{
+    SuDoKu *t;
     int i, n, count, scount;
-    
+
     if (self->n == 81)
     {
         return 1;
     }
-    
-    i = CSuDoKu__search_min(self);
-    
-    t = (CSuDoKu*)PyType_GenericNew(&CSuDoKuType, NULL, NULL);
-    
+
+    i = SuDoKu__search_min(self);
+
+    t = (SuDoKu*)PyType_GenericNew(&SuDoKuType, NULL, NULL);
+
     count = 0;
     for (n = 1; n < 10; n++)
     {
         if ((self->p[i] >> n) & 1)
         {
-            CSuDoKu__copy(self, t);
-            if (CSuDoKu__mark(t, i, n) == -2)
+            SuDoKu__copy(self, t);
+            if (SuDoKu__mark(t, i, n) == -2)
             {
                 continue;
             }
-            scount = CSuDoKu__unique_sol_aux(t);
+            scount = SuDoKu__unique_sol_aux(t);
             if (scount == -2)
             {
                 return -2;
@@ -285,78 +334,228 @@ CSuDoKu__unique_sol_aux(CSuDoKu *self)
 }
 
 static int
-CSuDoKu__unique_sol(CSuDoKu *self)
+SuDoKu__unique_sol(SuDoKu *self)
 {
     int i;
-    
-    CSuDoKu__reset(self);
-    
+
+    SuDoKu__reset(self);
+
     for (i = 0; i < 81; i++)
     {
         if (self->o[i] > 0)
         {
-            CSuDoKu__mark(self, i, self->o[i]);
+            SuDoKu__mark(self, i, self->o[i]);
         }
     }
-    
-    return CSuDoKu__unique_sol_aux(self) != -2;
+
+    return SuDoKu__unique_sol_aux(self) != -2;
 }
+
+static int
+SuDoKu__from_string(SuDoKu *self, const char *s, const int l)
+{
+    int i, k;
+    char c;
+    char err_msg[32];
+
+    for (i = k = 0; i < 81 && k < l; k++)
+    {
+        c = s[k];
+        if (c >= '1' && c <= '9')
+        {
+            self->o[i] = (int)c - (int)'0';
+        }
+        else if (c == '\n' || c == '\r')
+        {
+            continue;
+        }
+        else if (c == '_' || c == '-' || c == ' ' || c == '.' || c == '0')
+        {
+            // nothing to do
+        }
+        else
+        {
+            snprintf(err_msg, 32, "Invalid character: %c.", c);
+            PyErr_SetString(PyExc_ValueError, err_msg);
+            return -1;
+        }
+        i += 1;
+    }
+    if (i < 81)
+    {
+        PyErr_SetString(PyExc_ValueError, "Bad input: not enough data.");
+        return -1;
+    }
+    if (k < l)
+    {
+        PyErr_SetString(PyExc_ValueError, "Bad input: too much data.");
+        return -1;
+    }
+    return 0;
+}
+
+static int
+SuDoKu__to_console(SuDoKu *self, const int *v, char *s)
+{
+    int i, j, k;
+    char *sep = " --- --- --- --- --- --- --- --- --- \n";
+    char *lin = "|   |   |   |   |   |   |   |   |   |\n";
+    char *p1, *p2;
+
+    p1 = stpcpy(s, sep);
+    for (i = 0; i < 9; i++)
+    {
+        p2 = stpcpy(p1, lin);
+        for (j = 0; j < 9; j++)
+        {
+            k = v[9 * i + j];
+            if (k >= 1 && k <= 9)
+            {
+                p1[4 * j + 2] = (char)(k + (int)'0');
+            }
+        }
+        p1 = stpcpy(p2, sep);
+    }
+    p1[-1] = '\0'; // remove the last \n
+    return 0;
+}
+
+static int
+SuDoKu__to_html(SuDoKu *self, const int *v, char *s)
+{
+    int i, j, k;
+    char *p;
+
+    p = stpcpy(s, "<table class=\"sudoku\">");
+    for (i = 0; i < 9; i++)
+    {
+        p = stpcpy(p, "<tr>");
+        for (j = 0; j < 9; j++)
+        {
+            p = stpcpy(p, "<td>");
+            k = v[9 * i + j];
+            if (k == 0)
+            {
+                p = stpcpy(p, "&nbsp;");
+            }
+            if (k >= 1 && k <= 9)
+            {
+                p[0] = (char)(k + (int)'0');
+                p[1] = '\0';
+                p = &p[1];
+            }
+            p = stpcpy(p, "</td>");
+        }
+        p = stpcpy(p, "</tr>");
+    }
+    p = stpcpy(p, "</table>");
+    return 0;
+}
+
+static int
+SuDoKu__to_string(SuDoKu *self, const int *v, char *s)
+{
+    int i;
+
+    for (i = 0; i < 81; i++)
+    {
+        if (v[i] == 0)
+        {
+            s[i] = '_';
+        }
+        else if (v[i] >= 1 && v[i] <= 9)
+        {
+            s[i] = (char)(v[i] + (int)'0');
+        }
+        else
+        {
+            PyErr_SetString(PyExc_ValueError, "Invalid value in grid.");
+            return -1;
+        }
+    }
+    return 0;
+}
+
 
 /******************************************************************************/
 
+#ifdef DEBUG
 static PyObject*
-CSuDoKu_debug(CSuDoKu *self, PyObject *args)
+SuDoKu_debug(SuDoKu *self, PyObject *args)
 {
-    const char *msg;
-    
+    const char *msg = NULL;
+
     if (!PyArg_ParseTuple(args, "s", &msg))
     {
         return NULL;
     }
-    
+
     if (printf("%s\n", msg) < 0)
     {
-        PyErr_SetString(PyExc_IOError, "Unable to print debug info");
+        PyErr_SetString(PyExc_IOError, "Unable to print debug info.");
         return NULL;
     }
-    
+
     Py_RETURN_NONE;
 }
+#endif
 
 static PyObject*
-CSuDoKu_resolve(CSuDoKu *self)
+SuDoKu_resolve(SuDoKu *self)
 {
     int i;
-    
+
     /* Step 0 */
-    CSuDoKu__reset(self);
-    
+    SuDoKu__reset(self);
+
     /* Step 1 */
     for (i = 0; i < 81; i++)
     {
         if (self->o[i] > 0)
         {
-            CSuDoKu__mark(self, i, self->o[i]);
+            SuDoKu__mark(self, i, self->o[i]);
         }
     }
-    
+
     /* Step 2 */
-    return CSuDoKu__resolve_aux(self);
+    return SuDoKu__resolve_aux(self);
 }
 
 static PyObject*
-CSuDoKu_generate(CSuDoKu *self)
+SuDoKu_estimate(SuDoKu *self)
+{
+    double e;
+    int l;
+
+    // XXX TODO
+#ifdef DEBUG
+    if (self->d)
+    {
+        printf("Should print graph here...");
+        SuDoKu__print_graph(self->g);
+    }
+#endif
+
+    l = SuDoKu__graph_len(self->g);
+    e = log((double)l / 81.0) + 1.0;
+    return PyFloat_FromDouble(e);
+}
+
+static PyObject*
+SuDoKu_generate(SuDoKu *self)
 {
     int i, j, order[81], count, n, ok;
-    
+
     /* Step 0 */
-    CSuDoKu__reset(self);
-    
+    SuDoKu__reset(self);
+
     /* Step 1 */
+#ifdef DEBUG
     if (self->d)
     {
         printf("Shuffling positions...\n");
     }
+#endif
     srandomdev();
     for (i = 0; i < 81; i++)
     {
@@ -364,21 +563,25 @@ CSuDoKu_generate(CSuDoKu *self)
         order[i] = order[j];
         order[j] = i;
     }
+#ifdef DEBUG
     if (self->d)
     {
         printf("    Done.\n");
     }
-    
+#endif
+
     /* Step 2 */
+#ifdef DEBUG
     if (self->d)
     {
         printf("Generating a random grid...\n");
     }
+#endif
     count = 0;
     while (1)
     {
         count += 1;
-        CSuDoKu__reset(self);
+        SuDoKu__reset(self);
         ok = 1;
         for (i = 0; i < 81; i++)
         {
@@ -394,7 +597,7 @@ CSuDoKu_generate(CSuDoKu *self)
                         j -= 1;
                     }
                 }
-                if (CSuDoKu__mark(self, order[i], n) == -2)
+                if (SuDoKu__mark(self, order[i], n) == -2)
                 {
                     ok = 0;
                     break;
@@ -406,88 +609,212 @@ CSuDoKu_generate(CSuDoKu *self)
             break;
         }
     }
+#ifdef DEBUG
     if (self->d)
     {
         printf("    Found a grid after %d tries.\n", count);
     }
-    
+#endif
+
     /* Step 3 */
+#ifdef DEBUG
     if (self->d)
     {
         printf("Minimizing problem...\n");
     }
+#endif
     memcpy(self->o, self->v, 81 * sizeof(int));
     for (i = 0; i < 81; i++)
     {
         n = self->o[order[i]];
         self->o[order[i]] = 0;
-        if (CSuDoKu__unique_sol(self))
+        if (SuDoKu__unique_sol(self))
         {
+#ifdef DEBUG
             if (self->d)
             {
                 printf("    Removing %d at (%d, %d)\n", n, order[i] / 9, order[i] % 9);
             }
+#endif
         }
         else
         {
             self->o[order[i]] = n;
+#ifdef DEBUG
             if (self->d)
             {
                 printf("    Keeping %d at (%d, %d)\n", n, order[i] / 9, order[i] % 9);
             }
+#endif
         }
     }
-    
+
+#ifdef DEBUG
     if (self->d)
     {
         printf("    Done.\n");
     }
-    
+#endif
+
     Py_RETURN_NONE;
 }
 
-
-/******************************************************************************/
-
-static void
-CSuDoKu_dealloc(CSuDoKu *self)
+static PyObject*
+SuDoKu_from_string(SuDoKu *self, PyObject *args)
 {
-    Py_XDECREF(self->g);
-    self->ob_type->tp_free((PyObject*)self);
+    int l = 0;
+    const char *s = NULL;
+
+    if (!PyArg_ParseTuple(args, "s#", &s, &l))
+    {
+        return NULL;
+    }
+
+    if (SuDoKu__from_string(self, s, l) < 0)
+    {
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
 }
 
 static PyObject*
-CSuDoKu_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+SuDoKu_to_string(SuDoKu *self, PyObject *args, PyObject *kwds)
 {
-    CSuDoKu* self;
-    
-    self = (CSuDoKu*)type->tp_alloc(type, 0);
+    static char *kwlist[] = {"format", "values", NULL};
+    const char *format = "console";
+    PyObject *values = NULL;
+    int cvalues[81];
+    int coutlen;
+    static int (*formatter)(SuDoKu *self, const int *v, char *s);
+    char err_msg[32];
+    char *coutput = NULL;
+    PyObject *output = NULL;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|sO", kwlist, &format, &values))
+    {
+        return NULL;
+    }
+
+    if (values == NULL)
+    {
+        memcpy(cvalues, self->o, 81 * sizeof(int));
+    }
+    else
+    {
+        SuDoKu_set2darray(cvalues, values);
+    }
+
+    if (strcmp(format, "console") == 0)
+    {
+        coutlen = 19 /* lines */ * 38 /* columns */ + 1 /* \0 */;
+        formatter = SuDoKu__to_console;
+    }
+    else if (strcmp(format, "html") == 0)
+    {
+        coutlen = 9 /* rows */ * 144 /* max row len */ + 30 + 1 /* \0 */;
+        formatter = SuDoKu__to_html;
+    }
+    else if (strcmp(format, "string") == 0)
+    {
+        coutlen = 81 /* characters */ + 1 /* \0 */;
+        formatter = SuDoKu__to_string;
+    }
+    else
+    {
+        snprintf(err_msg, 32, "Invalid format: %s.", format);
+        PyErr_SetString(PyExc_ValueError, err_msg);
+        return NULL;
+    }
+
+    coutput = (char *)calloc(coutlen, sizeof(char));
+    if (coutput == NULL)
+    {
+        return PyErr_NoMemory();
+    }
+
+    if (formatter(self, cvalues, coutput) >= 0)
+    {
+        output = PyString_FromString(coutput);
+    }
+
+    free(coutput);
+    return output;
+}
+
+/******************************************************************************/
+
+static PyObject*
+SuDoKu_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    SuDoKu* self;
+
+    self = (SuDoKu*)type->tp_alloc(type, 0);
+
+#ifdef DEBUG
     if (self != NULL) {
         self->d = 0;
     }
-    
+#endif
+
     return (PyObject*)self;
 }
 
 static int
-CSuDoKu_init(CSuDoKu *self, PyObject *args, PyObject *kwds)
+SuDoKu_init(SuDoKu *self, PyObject *args, PyObject *kwds)
 {
-    static char *kwlist[] = {"debug", NULL};
-    
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|i", kwlist, &self->d))
+    const char *problem = NULL;
+    int len = 0;
+
+#ifdef DEBUG
+    static char *kwlist[] = {"problem", "debug", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|s#i", kwlist, &problem, &len, &self->d))
+#else
+    static char *kwlist[] = {"problem", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|s#", kwlist, &problem, &len))
+#endif
     {
         return -1;
     }
-    
+
+    if (problem != NULL)
+    {
+        if (SuDoKu__from_string(self, problem, len) < 0)
+        {
+            return -1;
+        }
+    }
+
     return 0;
 }
 
+static int
+SuDoKu_traverse(SuDoKu *self, visitproc visit, void *arg)
+{
+    Py_VISIT(self->g);
+    return 0;
+}
+
+static int 
+SuDoKu_clear(SuDoKu *self)
+{
+    Py_CLEAR(self->g);
+    return 0;
+}
+
+static void
+SuDoKu_dealloc(SuDoKu *self)
+{
+    Py_CLEAR(self->g);
+    self->ob_type->tp_free((PyObject*)self);
+}
+
 static PyObject *
-CSuDoKu_get2darray(int *a)
+SuDoKu_get2darray(int *a)
 {
     PyObject *v, *r, *c; /* values, row, cell */
     int i, j;
-    
+
     v = PyList_New(9);
     if (v == NULL)
     {
@@ -521,11 +848,11 @@ CSuDoKu_get2darray(int *a)
 }
 
 static int
-CSuDoKu_set2darray(int *a, PyObject *v)
+SuDoKu_set2darray(int *a, PyObject *v)
 {
     PyObject *r, *c;
     int i, j;
-    
+
     if (!PyList_Check(v) || PyList_Size(v) != 9)
     {
         return -1;
@@ -551,52 +878,50 @@ CSuDoKu_set2darray(int *a, PyObject *v)
 }
 
 static PyObject *
-CSuDoKu_getv(CSuDoKu *self, void *closure)
+SuDoKu_getv(SuDoKu *self, void *closure)
 {
-    return CSuDoKu_get2darray(self->v);
+    return SuDoKu_get2darray(self->v);
 }
 
 static int
-CSuDoKu_setv(CSuDoKu *self, PyObject *value, void *closure)
+SuDoKu_setv(SuDoKu *self, PyObject *value, void *closure)
 {
-    return CSuDoKu_set2darray(self->v, value);
+    return SuDoKu_set2darray(self->v, value);
 }
 
 static PyObject *
-CSuDoKu_geto(CSuDoKu *self, void *closure)
+SuDoKu_geto(SuDoKu *self, void *closure)
 {
-    return CSuDoKu_get2darray(self->o);
+    return SuDoKu_get2darray(self->o);
 }
 
 static int
-CSuDoKu_seto(CSuDoKu *self, PyObject *value, void *closure)
+SuDoKu_seto(SuDoKu *self, PyObject *value, void *closure)
 {
-    return CSuDoKu_set2darray(self->o, value);
+    return SuDoKu_set2darray(self->o, value);
 }
 
 /******************************************************************************/
 
 PyMODINIT_FUNC
-initcsudoku(void) 
+initcsudoku(void)
 {
     PyObject* m;
-    
-    if (PyType_Ready(&CSuDoKuType) < 0)
+
+    if (PyType_Ready(&SuDoKuType) < 0)
         return;
-    
-    m = Py_InitModule3("csudoku", module_methods, "CSuDoKu module.");
-    
+
+    SuDoKu_Contradiction = PyErr_NewException("csudoku.Contradiction", NULL, NULL);
+    if (SuDoKu_Contradiction == NULL)
+        return;
+
+    m = Py_InitModule3("csudoku", module_methods, "SuDoKu module.");
     if (m == NULL)
         return;
-    
-    Py_INCREF(&CSuDoKuType);
-    PyModule_AddObject(m, "CSuDoKu", (PyObject *)&CSuDoKuType);
-    
-    CSuDoKu_Contradiction = PyErr_NewException("csudoku.Contradiction", NULL, NULL);
-    Py_INCREF(CSuDoKu_Contradiction);
-    PyModule_AddObject(m, "Contradiction", CSuDoKu_Contradiction);
-    
-    CSuDoKu_MultipleSolutionsFound = PyErr_NewException("csudoku.MultipleSolutionsFound", NULL, NULL);
-    Py_INCREF(CSuDoKu_MultipleSolutionsFound);
-    PyModule_AddObject(m, "MultipleSolutionsFound", CSuDoKu_MultipleSolutionsFound);
+
+    Py_INCREF(&SuDoKuType);
+    PyModule_AddObject(m, "SuDoKu", (PyObject *)&SuDoKuType);
+
+    Py_INCREF(SuDoKu_Contradiction);
+    PyModule_AddObject(m, "Contradiction", SuDoKu_Contradiction);
 }

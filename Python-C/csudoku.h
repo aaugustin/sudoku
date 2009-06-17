@@ -19,15 +19,16 @@ typedef struct {
     int q[81];
     int q_i;    // in = push position
     int q_o;    // out = pop position
-    /* statistics */
     int n;
+    /* statistics */
     PyObject *g;
-    /* debug */
+#ifdef DEBUG
     int d;
-} CSuDoKu;
+#endif
+} SuDoKu;
 
 /* generated with the following Python code:
-print 'static int CSuDoKu_relations[81][20] = {\n    {'                        \
+print 'static int SuDoKu_relations[81][20] = {\n    {'                        \
     + '},\n    {'.join([                                                       \
         ','.join([                                                             \
             '%2d' % (9 * k + l)                                                \
@@ -40,7 +41,7 @@ print 'static int CSuDoKu_relations[81][20] = {\n    {'                        \
     + '}\n};'                                                                   
 */
 
-static int CSuDoKu_relations[81][20] = {
+static int SuDoKu_relations[81][20] = {
     { 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,18,19,20,27,36,45,54,63,72},
     { 0, 2, 3, 4, 5, 6, 7, 8, 9,10,11,18,19,20,28,37,46,55,64,73},
     { 0, 1, 3, 4, 5, 6, 7, 8, 9,10,11,18,19,20,29,38,47,56,65,74},
@@ -124,105 +125,159 @@ static int CSuDoKu_relations[81][20] = {
     { 8,17,26,35,44,53,60,61,62,69,70,71,72,73,74,75,76,77,78,79}
 };
 
-static PyObject *CSuDoKu_Contradiction;
-
-static PyObject *CSuDoKu_MultipleSolutionsFound;
-
+static PyObject *SuDoKu_Contradiction;
 
 /******************************************************************************/
 
 static int
-CSuDoKu__reset(CSuDoKu *self);
+SuDoKu__reset(SuDoKu *self);
 
 static int
-CSuDoKu__copy(CSuDoKu *self, CSuDoKu *t);
+SuDoKu__copy(SuDoKu *self, SuDoKu *t);
 
 static int
-CSuDoKu__mark(CSuDoKu *self, int i, int n);
+SuDoKu__mark(SuDoKu *self, int i, int n);
 
 static int
-CSuDoKu__eliminate(CSuDoKu *self, int i, int n);
+SuDoKu__eliminate(SuDoKu *self, int i, int n);
 
 static int
-CSuDoKu__search_min(CSuDoKu *self);
+SuDoKu__search_min(SuDoKu *self);
+
+static PyObject* // XXX TODO investigate passing as reference!
+SuDoKu__resolve_aux(SuDoKu *self);
+
+//static int
+//SuDoKu__resolve_aux(SuDoKu *self, ...);
+
+#ifdef DEBUG
+static int
+SuDoKu__print_graph(PyObject *g);
+
+static int
+SuDoKu__print_graph_aux(PyObject *g, char *p);
+#endif
+
+static int
+SuDoKu__graph_len(PyObject *g);
+
+static int
+SuDoKu__graph_len_aux(PyObject *g, int d);
+
+static int
+SuDoKu__graph_forks(PyObject *g);
+
+static int
+SuDoKu__unique_sol_aux(SuDoKu *self);
+
+static int
+SuDoKu__unique_sol(SuDoKu *self);
+
+static int
+SuDoKu__from_string(SuDoKu *self, const char *s, int l);
+
+static int
+SuDoKu__to_console(SuDoKu *self, const int *v, char *s);
+
+static int
+SuDoKu__to_html(SuDoKu *self, const int *v, char *s);
+
+static int
+SuDoKu__to_string(SuDoKu *self, const int *v, char *s);
+
+
+/******************************************************************************/
+
+#ifdef DEBUG
+static PyObject*
+SuDoKu_debug(SuDoKu *self, PyObject *args);
+#endif
 
 static PyObject*
-CSuDoKu__resolve_aux(CSuDoKu *self);
+SuDoKu_resolve(SuDoKu *self);
 
-static int
-CSuDoKu__unique_sol_aux(CSuDoKu *self);
+static PyObject*
+SuDoKu_estimate(SuDoKu *self);
 
-static int
-CSuDoKu__unique_sol(CSuDoKu *self);
+static PyObject*
+SuDoKu_generate(SuDoKu *self);
+
+static PyObject*
+SuDoKu_from_string(SuDoKu *self, PyObject *args);
+
+static PyObject*
+SuDoKu_to_string(SuDoKu *self, PyObject *args, PyObject *kwds);
 
 /******************************************************************************/
 
 static PyObject*
-CSuDoKu_debug(CSuDoKu *self, PyObject *args);
+SuDoKu_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 
-static PyObject*
-CSuDoKu_resolve(CSuDoKu *self);
+static int
+SuDoKu_init(SuDoKu *self, PyObject *args, PyObject *kwds);
 
-static PyObject*
-CSuDoKu_generate(CSuDoKu *self);
+static int
+SuDoKu_traverse(SuDoKu *self, visitproc visit, void *arg);
 
-/******************************************************************************/
+static int 
+SuDoKu_clear(SuDoKu *self);
 
 static void
-CSuDoKu_dealloc(CSuDoKu *self);
-
-static PyObject*
-CSuDoKu_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
-
-static int
-CSuDoKu_init(CSuDoKu *self, PyObject *args, PyObject *kwds);\
+SuDoKu_dealloc(SuDoKu *self);
 
 static PyObject *
-CSuDoKu_get2darray(int *a);
+SuDoKu_get2darray(int *a);
 
 static int
-CSuDoKu_set2darray(int *a, PyObject *value);
+SuDoKu_set2darray(int *a, PyObject *value);
 
 static PyObject *
-CSuDoKu_getv(CSuDoKu *self, void *closure);
+SuDoKu_getv(SuDoKu *self, void *closure);
 
 static int
-CSuDoKu_setv(CSuDoKu *self, PyObject *value, void *closure);
+SuDoKu_setv(SuDoKu *self, PyObject *value, void *closure);
 
 static PyObject *
-CSuDoKu_geto(CSuDoKu *self, void *closure);
+SuDoKu_geto(SuDoKu *self, void *closure);
 
 static int
-CSuDoKu_seto(CSuDoKu *self, PyObject *value, void *closure);
+SuDoKu_seto(SuDoKu *self, PyObject *value, void *closure);
 
-static PyMemberDef CSuDoKu_members[] = {
-    {"n", T_INT,       offsetof(CSuDoKu, n), 0, ""},
-    {"g", T_OBJECT_EX, offsetof(CSuDoKu, g), 0, ""},
-    {"d", T_INT,       offsetof(CSuDoKu, d), 0, ""},
+static PyMemberDef SuDoKu_members[] = {
+    {"n", T_INT,       offsetof(SuDoKu, n), READONLY, ""},
+    {"g", T_OBJECT_EX, offsetof(SuDoKu, g), 0, ""},
+#ifdef DEBUG
+    {"d", T_INT,       offsetof(SuDoKu, d), 0, ""},
+#endif
     {NULL}
 };
 
-static PyMethodDef CSuDoKu_methods[] = {
-    {"debug",       (PyCFunction)CSuDoKu_debug,     METH_VARARGS, ""},
-    {"resolve",     (PyCFunction)CSuDoKu_resolve,   METH_NOARGS,  ""},
-    {"generate",    (PyCFunction)CSuDoKu_generate,  METH_NOARGS,  ""},
+static PyMethodDef SuDoKu_methods[] = {
+#ifdef DEBUG
+    {"debug",       (PyCFunction)SuDoKu_debug,         METH_VARARGS,   ""},
+#endif DEBUG
+    {"resolve",     (PyCFunction)SuDoKu_resolve,       METH_NOARGS,    ""},
+    {"estimate",    (PyCFunction)SuDoKu_estimate,      METH_NOARGS,    ""},
+    {"generate",    (PyCFunction)SuDoKu_generate,      METH_NOARGS,    ""},
+    {"from_string", (PyCFunction)SuDoKu_from_string,   METH_VARARGS,   ""},
+    {"to_string",   (PyCFunction)SuDoKu_to_string,     METH_VARARGS,   ""},
     {NULL}
 };
 
-static PyGetSetDef CSuDoKu_getseters[] = {
-    {"v", (getter)CSuDoKu_getv, (setter)CSuDoKu_setv, "v", NULL},
-    {"o", (getter)CSuDoKu_geto, (setter)CSuDoKu_seto, "o", NULL},
+static PyGetSetDef SuDoKu_getseters[] = {
+    {"v", (getter)SuDoKu_getv, (setter)SuDoKu_setv, "Current grid", NULL},
+    {"o", (getter)SuDoKu_geto, (setter)SuDoKu_seto, "Original grid", NULL},
     {NULL}
 };
 
 
-static PyTypeObject CSuDoKuType = {
+static PyTypeObject SuDoKuType = {
     PyObject_HEAD_INIT(NULL)
     0,                              /*ob_size*/
-    "csudoku.CSuDoKu",              /*tp_name*/
-    sizeof(CSuDoKu),                /*tp_basicsize*/
+    "csudoku.SuDoKu",               /*tp_name*/
+    sizeof(SuDoKu),                 /*tp_basicsize*/
     0,                              /*tp_itemsize*/
-    (destructor)CSuDoKu_dealloc,    /*tp_dealloc*/
+    (destructor)SuDoKu_dealloc,     /*tp_dealloc*/
     0,                              /*tp_print*/
     0,                              /*tp_getattr*/
     0,                              /*tp_setattr*/
@@ -237,25 +292,26 @@ static PyTypeObject CSuDoKuType = {
     0,                              /*tp_getattro*/
     0,                              /*tp_setattro*/
     0,                              /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
-    "CSuDoKu",                      /* tp_doc */
-    0,                              /* tp_traverse */
-    0,                              /* tp_clear */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /*tp_flags*/
+    "SuDoKu",                       /* tp_doc */
+    (traverseproc)SuDoKu_traverse,  /* tp_traverse */
+    (inquiry)SuDoKu_clear,          /* tp_clear */
     0,                              /* tp_richcompare */
     0,                              /* tp_weaklistoffset */
     0,                              /* tp_iter */
     0,                              /* tp_iternext */
-    CSuDoKu_methods,                /* tp_methods */
-    CSuDoKu_members,                /* tp_members */
-    CSuDoKu_getseters,              /* tp_getset */
+    SuDoKu_methods,                 /* tp_methods */
+    SuDoKu_members,                 /* tp_members */
+    SuDoKu_getseters,               /* tp_getset */
     0,                              /* tp_base */
     0,                              /* tp_dict */
     0,                              /* tp_descr_get */
     0,                              /* tp_descr_set */
     0,                              /* tp_dictoffset */
-    (initproc)CSuDoKu_init,         /* tp_init */
+    (initproc)SuDoKu_init,          /* tp_init */
     0,                              /* tp_alloc */
-    CSuDoKu_new,                    /* tp_new */};
+    SuDoKu_new,                     /* tp_new */
+};
 
 /******************************************************************************/
 

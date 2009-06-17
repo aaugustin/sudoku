@@ -2,7 +2,7 @@
 # Copyright (C) 2008-2009 Aymeric Augustin
 
 
-import re, unittest
+import re, unittest, StringIO
 from sudoku import *
 
 
@@ -25,26 +25,36 @@ class TestResolutionAndEstimation(unittest.TestCase):
     def testResolve(self):
         forks, estimations = [], []
         for problem, solution in sudokus:
-            s = SuDoKu()
-            s.from_string(problem)
+            s = SuDoKu(problem)
             solutions = s.resolve()
             self.assertEqual(len(solutions), 1)
-            self.assertEqual(s.to_string(solutions[0]), solution)
-            forks.append(s.graph_forks())
+            self.assertEqual(s.to_string(values=solutions[0]), solution)
             estimations.append(s.estimate())
         self.assertEqual(estimations, sorted(estimations))
-        self.assertEqual(forks, sorted(forks))
 
     def testRedundancyIsAllowedInProblems(self):
         problem, solution = sudokus[0]
         s = SuDoKu(problem[:40] + solution[40:])
-        self.assertEqual(s.to_string(s.resolve()[0]), solution)
+        self.assertEqual(s.to_string(values=s.resolve()[0]), solution)
 
     def testContradictionsAreDetectedInProblems(self):
         problem, solution = sudokus[0]
         s = SuDoKu('66' + problem[2:])
         self.assertRaises(Contradiction, s.resolve)
 
+    def testEstimationCanBeDisabled(self):
+        s = SuDoKu(sudokus[0][0], estimate=False)
+        s.resolve()
+        self.assertEqual(None, s.estimate())
+
+    def testDebugCanBeEnabled(self):
+        problem, solution = sudokus[0]
+        s = SuDoKu(problem, debug=True)
+        sys.stdout = StringIO.StringIO()
+        s.resolve()
+        output = sys.stdout.getvalue()
+        sys.stdout = sys.__stdout__
+        self.assertNotEqual(output.find(solution), -1)
 
 class TestGeneration(unittest.TestCase):
 
@@ -106,22 +116,43 @@ class TestInput(unittest.TestCase):
 class TestOutput(unittest.TestCase):
 
     def setUp(self):
-        self.problem = sudokus[2][0]
+        self.problem, self.solution = sudokus[0]
         self.s = SuDoKu(self.problem)
+        self.g = self.s.resolve()[0]
 
-    def testToConsole(self):
-        output = re.sub(r'[^1-9_]+', '',
-                        self.s.to_console().replace('   ', ' _ '))
+    def testProblemWithInvalidFormat(self):
+        self.assertRaises(ValueError, self.s.to_string, 'spam')
+
+    def testSolutionWithInvalidFormat(self):
+        self.assertRaises(ValueError, self.s.to_string, 'eggs', self.g)
+
+    def testProblemToConsole(self):
+        output = self.s.to_string('console')
+        output = re.sub(r'[^1-9_]+', '', output.replace('   ', ' _ '))
         self.assertEqual(output, self.problem)
 
-    def testToHtml(self):
-        output = re.sub(r'<.+?>', '', self.s.to_html()).replace('&nbsp;', '_')
+    def testSolutionToConsole(self):
+        output = self.s.to_string('console', self.g)
+        output = re.sub(r'[^1-9_]+', '', output.replace('   ', ' _ '))
+        self.assertEqual(output, self.solution)
+
+    def testProblemToHtml(self):
+        output = self.s.to_string('html')
+        output = re.sub(r'<.+?>', '', output).replace('&nbsp;', '_')
         self.assertEqual(output, self.problem)
 
-    def testToString(self):
-        output = self.s.to_string()
+    def testSolutionToHtml(self):
+        output = self.s.to_string('html', self.g)
+        output = re.sub(r'<.+?>', '', output).replace('&nbsp;', '_')
+        self.assertEqual(output, self.solution)
+
+    def testProblemToString(self):
+        output = self.s.to_string('string')
         self.assertEqual(output, self.problem)
 
+    def testSolutionToString(self):
+        output = self.s.to_string('string', self.g)
+        self.assertEqual(output, self.solution)
 
 if __name__ == '__main__':
     unittest.main()
