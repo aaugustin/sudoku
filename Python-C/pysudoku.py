@@ -2,7 +2,7 @@
 # Copyright (C) 2008-2009 Aymeric Augustin
 
 
-"""SuDoKu generator and solver"""
+"""SuDoKu generator and solver (pure Python implementation)."""
 
 
 from __future__ import division, with_statement
@@ -12,11 +12,11 @@ from optparse import OptionParser
 
 
 class Contradiction(Exception):
-    pass
+    """Contradiction in input, no solution exists."""
 
 
 class _MultipleSolutionsFound(Exception):
-    pass
+    """More than one solution exists."""
 
 
 class SuDoKu(object):

@@ -788,7 +788,8 @@ SuDoKu_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     self = (SuDoKu*)type->tp_alloc(type, 0);
 
-    if (self != NULL) {
+    if (self != NULL)
+    {
         self->e = 1;
 #ifdef DEBUG
         self->d = 0;
@@ -849,6 +850,7 @@ SuDoKu_dealloc(SuDoKu *self)
     self->ob_type->tp_free((PyObject*)self);
 }
 
+/* Returns a new reference */
 static PyObject *
 SuDoKu_get2darray(int *a)
 {
@@ -858,7 +860,6 @@ SuDoKu_get2darray(int *a)
     v = PyList_New(9);
     if (v == NULL)
     {
-        Py_DECREF(v);
         return NULL;
     }
     for (i = 0; i < 9; i++)
@@ -867,7 +868,6 @@ SuDoKu_get2darray(int *a)
         if (r == NULL)
         {
             Py_DECREF(v);
-            Py_DECREF(r);
             return NULL;
         }
         for (j = 0; j < 9; j++)
@@ -877,7 +877,6 @@ SuDoKu_get2darray(int *a)
             {
                 Py_DECREF(v);
                 Py_DECREF(r);
-                Py_DECREF(c);
                 return NULL;
             }
             PyList_SET_ITEM(r, j, c);
@@ -890,10 +889,10 @@ SuDoKu_get2darray(int *a)
 static int
 SuDoKu_set2darray(int *a, PyObject *v)
 {
-    PyObject *r, *c;
+    PyObject *r, *c; /* row, cell */
     int i, j;
 
-    if (!PyList_Check(v) || PyList_Size(v) != 9)
+    if (v == NULL || !PyList_Check(v) || PyList_Size(v) != 9)
     {
         return -1;
     }
@@ -946,22 +945,33 @@ SuDoKu_seto(SuDoKu *self, PyObject *value, void *closure)
 PyMODINIT_FUNC
 initcsudoku(void)
 {
-    PyObject* m;
+    PyObject *d, *m;
 
-    if (PyType_Ready(&SuDoKuType) < 0)
-        return;
+    if (PyType_Ready(&SuDoKuType) < 0) return;
 
-    SuDoKu_Contradiction = PyErr_NewException("csudoku.Contradiction", NULL, NULL);
-    if (SuDoKu_Contradiction == NULL)
-        return;
+    // create SuDoKu_Contradiction
+    d = Py_BuildValue("{ss}", "__doc__",
+                              "Contradiction in input, no solution exists.");
+    if (d == NULL) return;
 
-    m = Py_InitModule3("csudoku", module_methods, "SuDoKu module.");
-    if (m == NULL)
-        return;
+    SuDoKu_Contradiction = PyErr_NewException("csudoku.Contradiction", NULL, d);
+    Py_DECREF(d);
+    if (SuDoKu_Contradiction == NULL) return;
 
+    // initialize module
+    m = Py_InitModule3("csudoku", module_methods,
+                       "SuDoKu generator and solver (C implementation).");
+    if (m == NULL) return;
+
+    // insert a new reference to objects in the module dictionnary
     Py_INCREF(&SuDoKuType);
-    PyModule_AddObject(m, "SuDoKu", (PyObject *)&SuDoKuType);
-
+    if (PyModule_AddObject(m, "SuDoKu", (PyObject *)&SuDoKuType) < 0)
+    {
+        Py_DECREF(&SuDoKuType);
+    }
     Py_INCREF(SuDoKu_Contradiction);
-    PyModule_AddObject(m, "Contradiction", SuDoKu_Contradiction);
+    if (PyModule_AddObject(m, "Contradiction", SuDoKu_Contradiction) < 0)
+    {
+        Py_DECREF(SuDoKu_Contradiction);
+    }
 }
