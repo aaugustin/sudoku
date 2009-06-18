@@ -29,9 +29,12 @@ SuDoKu__reset(SuDoKu *self)
     self->n = 0;
 
     /* statistics */
-    Py_XDECREF(self->g);
-    Py_INCREF(Py_None);
-    self->g = Py_None;
+    if (self->e)
+    {
+        Py_XDECREF(self->g);
+        Py_INCREF(Py_None);
+        self->g = Py_None;
+    }
 
     return 0;
 }
@@ -49,9 +52,12 @@ SuDoKu__copy(SuDoKu *self, SuDoKu *t)
     t->n = self->n;
 
     /* self->g is not copied; that does not matter for the algorithm */
-    Py_XDECREF(t->g);
-    Py_INCREF(Py_None);
-    t->g = Py_None;
+    if (self->e)
+    {
+        Py_XDECREF(t->g);
+        Py_INCREF(Py_None);
+        t->g = Py_None;
+    }
 
 #ifdef DEBUG
     t->d = self->d;
@@ -75,13 +81,16 @@ SuDoKu__mark(SuDoKu *self, int i, int n)
 #ifdef DEBUG
         if (self->d)
         {
-            printf("    Attempt to assign %d at (%d, %d) which is forbidden\n", n, i / 9, i % 9);
+            PySys_WriteStdout("    Attempt to assign %d at (%d, %d) which is forbidden\n", n, i / 9, i % 9);
         }
-#endif
-        // XXXXX Safe ?
-        Py_DECREF(self->g);
-        self->g = Py_BuildValue("ic", self->n, '-');
-        return -2;
+#endif  
+        if (self->e)
+        {
+            // XXXXX Safe ?
+            Py_DECREF(self->g);
+            self->g = Py_BuildValue("ic", self->n, '-');
+            return -2;
+        }
     }
 
     self->v[i] = n;
@@ -133,11 +142,15 @@ SuDoKu__eliminate(SuDoKu *self, int i, int n)
 #ifdef DEBUG
             if (self->d)
             {
-                printf("    Impossibility at (%d, %d), search depth = %d\n", i / 9, i % 9, self->n);
+                PySys_WriteStdout("    Impossibility at (%d, %d), search depth = %d\n", i / 9, i % 9, self->n);
             }
 #endif
-            Py_DECREF(self->g);
-            self->g = Py_BuildValue("ic", self->n, '-');
+            if (self->e)
+            {
+                // XXXXX Safe ?
+                Py_DECREF(self->g);
+                self->g = Py_BuildValue("ic", self->n, '-');
+            }
             return -2;
         }
         else if (self->c[i] == 1)
@@ -172,7 +185,7 @@ SuDoKu__search_min(SuDoKu *self)
 static PyObject*
 SuDoKu__resolve_aux(SuDoKu *self)
 {
-    PyObject *res, *sres, *grid, *sg;
+    PyObject *res, *sres, *grid, *sg = NULL;
     SuDoKu *t;
     int i, n, x;
 
@@ -188,16 +201,19 @@ SuDoKu__resolve_aux(SuDoKu *self)
 #ifdef DEBUG
         if (self->d)
         {
-            printf("    Found a solution: ");
+            PySys_WriteStdout("    Found a solution: ");
             for (i = 0; i < 81; i++)
             {
-                printf("%d", self->v[i]);
+                PySys_WriteStdout("%d", self->v[i]);
             }
-            printf("\n");
+            PySys_WriteStdout("\n");
         }
 #endif
-        Py_DECREF(self->g);
-        self->g = Py_BuildValue("ic", self->n, '+');
+        if (self->e)
+        {
+            Py_DECREF(self->g);
+            self->g = Py_BuildValue("ic", self->n, '+');
+        }
         if (PyList_Append(res, SuDoKu_get2darray(self->v)) < 0)
         {
             return NULL;
@@ -209,11 +225,14 @@ SuDoKu__resolve_aux(SuDoKu *self)
 
     t = (SuDoKu*)PyType_GenericNew(&SuDoKuType, NULL, NULL);
 
-    sg = PyList_New(0);
-    if (sg == NULL)
+    if (self->e)
     {
-        Py_DECREF(sg);
-        return NULL;
+        sg = PyList_New(0);
+        if (sg == NULL)
+        {
+            Py_DECREF(sg);
+            return NULL;
+        }
     }
 
     for (n = 1; n < 10; n++)
@@ -223,15 +242,18 @@ SuDoKu__resolve_aux(SuDoKu *self)
 #ifdef DEBUG
             if (self->d)
             {
-                printf("Trying %d at (%d, %d), search depth = %d\n", n, i / 9, i % 9, self->n);
+                PySys_WriteStdout("Trying %d at (%d, %d), search depth = %d\n", n, i / 9, i % 9, self->n);
             }
 #endif
             SuDoKu__copy(self, t);
             if (SuDoKu__mark(t, i, n) == -2)
             {
-                if (PyList_Append(sg, t->g))
+                if (self->e)
                 {
-                    return NULL;
+                    if (PyList_Append(sg, t->g))
+                    {
+                        return NULL;
+                    }
                 }
                 continue;
             }
@@ -248,15 +270,21 @@ SuDoKu__resolve_aux(SuDoKu *self)
                     return NULL;
                 }
             }
-            if (PyList_Append(sg, t->g))
+            if (self->e)
             {
-                return NULL;
+                if (PyList_Append(sg, t->g))
+                {
+                    return NULL;
+                }
             }
         }
     }
 
-    Py_DECREF(self->g);
-    self->g = Py_BuildValue("iO", self->n, sg);
+    if (self->e)
+    {
+        Py_DECREF(self->g);
+        self->g = Py_BuildValue("iO", self->n, sg);
+    }
 
     return res;
 }
@@ -497,11 +525,7 @@ SuDoKu_debug(SuDoKu *self, PyObject *args)
         return NULL;
     }
 
-    if (printf("%s\n", msg) < 0)
-    {
-        PyErr_SetString(PyExc_IOError, "Unable to print debug info.");
-        return NULL;
-    }
+    PySys_WriteStdout("%s\n", msg);
 
     Py_RETURN_NONE;
 }
@@ -531,21 +555,22 @@ SuDoKu_resolve(SuDoKu *self)
 static PyObject*
 SuDoKu_estimate(SuDoKu *self)
 {
-    double e;
-    int l;
+    int l, f;
 
-    // XXX TODO
+    if (!self->e || self->g == NULL)
+    {
+        Py_RETURN_NONE;
+    }
 #ifdef DEBUG
     if (self->d)
     {
-        printf("Should print graph here...");
         SuDoKu__print_graph(self->g);
     }
 #endif
 
     l = SuDoKu__graph_len(self->g);
-    e = log((double)l / 81.0) + 1.0;
-    return PyFloat_FromDouble(e);
+    f = SuDoKu__graph_forks(self->g);
+    return Py_BuildValue("di", log((double)l / 81.0) + 1.0, f);
 }
 
 static PyObject*
@@ -560,7 +585,7 @@ SuDoKu_generate(SuDoKu *self)
 #ifdef DEBUG
     if (self->d)
     {
-        printf("Shuffling positions...\n");
+        PySys_WriteStdout("Shuffling positions...\n");
     }
 #endif
     srandomdev();
@@ -573,7 +598,7 @@ SuDoKu_generate(SuDoKu *self)
 #ifdef DEBUG
     if (self->d)
     {
-        printf("    Done.\n");
+        PySys_WriteStdout("    Done.\n");
     }
 #endif
 
@@ -581,7 +606,7 @@ SuDoKu_generate(SuDoKu *self)
 #ifdef DEBUG
     if (self->d)
     {
-        printf("Generating a random grid...\n");
+        PySys_WriteStdout("Generating a random grid...\n");
     }
 #endif
     count = 0;
@@ -619,7 +644,7 @@ SuDoKu_generate(SuDoKu *self)
 #ifdef DEBUG
     if (self->d)
     {
-        printf("    Found a grid after %d tries.\n", count);
+        PySys_WriteStdout("    Found a grid after %d tries.\n", count);
     }
 #endif
 
@@ -627,7 +652,7 @@ SuDoKu_generate(SuDoKu *self)
 #ifdef DEBUG
     if (self->d)
     {
-        printf("Minimizing problem...\n");
+        PySys_WriteStdout("Minimizing problem...\n");
     }
 #endif
     memcpy(self->o, self->v, 81 * sizeof(int));
@@ -640,7 +665,7 @@ SuDoKu_generate(SuDoKu *self)
 #ifdef DEBUG
             if (self->d)
             {
-                printf("    Removing %d at (%d, %d)\n", n, order[i] / 9, order[i] % 9);
+                PySys_WriteStdout("    Removing %d at (%d, %d)\n", n, order[i] / 9, order[i] % 9);
             }
 #endif
         }
@@ -650,7 +675,7 @@ SuDoKu_generate(SuDoKu *self)
 #ifdef DEBUG
             if (self->d)
             {
-                printf("    Keeping %d at (%d, %d)\n", n, order[i] / 9, order[i] % 9);
+                PySys_WriteStdout("    Keeping %d at (%d, %d)\n", n, order[i] / 9, order[i] % 9);
             }
 #endif
         }
@@ -659,7 +684,7 @@ SuDoKu_generate(SuDoKu *self)
 #ifdef DEBUG
     if (self->d)
     {
-        printf("    Done.\n");
+        PySys_WriteStdout("    Done.\n");
     }
 #endif
 
@@ -758,11 +783,12 @@ SuDoKu_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     self = (SuDoKu*)type->tp_alloc(type, 0);
 
-#ifdef DEBUG
     if (self != NULL) {
+        self->e = 1;
+#ifdef DEBUG
         self->d = 0;
-    }
 #endif
+    }
 
     return (PyObject*)self;
 }
@@ -774,11 +800,13 @@ SuDoKu_init(SuDoKu *self, PyObject *args, PyObject *kwds)
     int len = 0;
 
 #ifdef DEBUG
-    static char *kwlist[] = {"problem", "debug", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|s#i", kwlist, &problem, &len, &self->d))
+    static char *kwlist[] = {"problem", "estimate", "debug", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|s#bb", kwlist,
+                                     &problem, &len, &self->e, &self->d))
 #else
-    static char *kwlist[] = {"problem", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|s#", kwlist, &problem, &len))
+    static char *kwlist[] = {"problem", "estimate", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|s#b", kwlist,
+                                     &problem, &len, &self->e))
 #endif
     {
         return -1;

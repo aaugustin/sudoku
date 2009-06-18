@@ -22,8 +22,9 @@ typedef struct {
     int n;
     /* statistics */
     PyObject *g;
+    char e;
 #ifdef DEBUG
-    int d;
+    char d;
 #endif
 } SuDoKu;
 
@@ -245,9 +246,10 @@ SuDoKu_seto(SuDoKu *self, PyObject *value, void *closure);
 
 static PyMemberDef SuDoKu_members[] = {
     {"n", T_INT,       offsetof(SuDoKu, n), READONLY, ""},
+    {"e", T_BYTE,      offsetof(SuDoKu, e), 0, ""},
     {"g", T_OBJECT_EX, offsetof(SuDoKu, g), 0, ""},
 #ifdef DEBUG
-    {"d", T_INT,       offsetof(SuDoKu, d), 0, ""},
+    {"d", T_BYTE,      offsetof(SuDoKu, d), 0, ""},
 #endif
     {NULL}
 };
