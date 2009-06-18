@@ -145,11 +145,8 @@ SuDoKu__eliminate(SuDoKu *self, int i, int n);
 static int
 SuDoKu__search_min(SuDoKu *self);
 
-static PyObject* // XXX TODO investigate passing as reference!
-SuDoKu__resolve_aux(SuDoKu *self);
-
-//static int
-//SuDoKu__resolve_aux(SuDoKu *self, ...);
+static int
+SuDoKu__resolve_aux(SuDoKu *self, PyObject **res);
 
 #ifdef DEBUG
 static int
