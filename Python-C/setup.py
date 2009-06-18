@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 # Copyright (C) 2008-2009 Aymeric Augustin
 
+import sys
 from distutils.core import setup, Extension
+
+define_macros = []
+if '--debug' in sys.argv:
+    define_macros.append(('DEBUG', None))
 
 setup(
     name='csudoku',
@@ -12,5 +17,6 @@ setup(
     description='SuDoKu generator and solver',
     scripts=['sudoku'],
     py_modules=['sudoku', 'pysudoku'],
-    ext_modules=[Extension('csudoku', ['csudoku.c'])],
+    ext_modules=[Extension('csudoku', ['csudoku.c'], define_macros=define_macros)],
+    
 )

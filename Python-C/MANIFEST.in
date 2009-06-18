@@ -1,2 +1,3 @@
 include benchmark/benchmark_sudoku.py
+include benchmark/95_hard_puzzles
 include csudoku.h

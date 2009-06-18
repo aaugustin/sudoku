@@ -21,8 +21,9 @@ dist: setup.py MANIFEST.in
 clean:
 	python setup.py clean
 	rm -rf build
-	rm -rf dist
 	rm -f csudoku.so
+	rm -rf dist
+	rm -f MANIFEST
 	rm -f *.pyc
 
 .PHONY: test
