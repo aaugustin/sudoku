@@ -89,8 +89,10 @@ SuDoKu__mark(SuDoKu *self, int i, int n)
             // XXXXX Safe ?
             Py_DECREF(self->g);
             self->g = Py_BuildValue("ic", self->n, '-');
-            return -2;
         }
+
+        PyErr_SetNone(SuDoKu_Contradiction);
+        return -2;
     }
 
     self->v[i] = n;
@@ -410,7 +412,7 @@ SuDoKu__from_string(SuDoKu *self, const char *s, const int l)
         }
         else
         {
-            snprintf(err_msg, 32, "Invalid character: %c.", c);
+            PyOS_snprintf(err_msg, 32, "Invalid character: %c.", c);
             PyErr_SetString(PyExc_ValueError, err_msg);
             return -1;
         }
@@ -544,7 +546,10 @@ SuDoKu_resolve(SuDoKu *self)
     {
         if (self->o[i] > 0)
         {
-            SuDoKu__mark(self, i, self->o[i]);
+            if (SuDoKu__mark(self, i, self->o[i]) == -2)
+            {
+                return NULL;
+            }
         }
     }
 
@@ -714,7 +719,7 @@ static PyObject*
 SuDoKu_to_string(SuDoKu *self, PyObject *args, PyObject *kwds)
 {
     static char *kwlist[] = {"format", "values", NULL};
-    const char *format = "console";
+    const char *format = "string";
     PyObject *values = NULL;
     int cvalues[81];
     int coutlen;
@@ -754,7 +759,7 @@ SuDoKu_to_string(SuDoKu *self, PyObject *args, PyObject *kwds)
     }
     else
     {
-        snprintf(err_msg, 32, "Invalid format: %s.", format);
+        PyOS_snprintf(err_msg, 32, "Invalid format: %s.", format);
         PyErr_SetString(PyExc_ValueError, err_msg);
         return NULL;
     }

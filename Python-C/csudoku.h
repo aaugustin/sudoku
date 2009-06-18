@@ -256,13 +256,13 @@ static PyMemberDef SuDoKu_members[] = {
 
 static PyMethodDef SuDoKu_methods[] = {
 #ifdef DEBUG
-    {"debug",       (PyCFunction)SuDoKu_debug,         METH_VARARGS,   ""},
+    {"debug",       (PyCFunction)SuDoKu_debug,          METH_VARARGS,   ""},
 #endif DEBUG
-    {"resolve",     (PyCFunction)SuDoKu_resolve,       METH_NOARGS,    ""},
-    {"estimate",    (PyCFunction)SuDoKu_estimate,      METH_NOARGS,    ""},
-    {"generate",    (PyCFunction)SuDoKu_generate,      METH_NOARGS,    ""},
-    {"from_string", (PyCFunction)SuDoKu_from_string,   METH_VARARGS,   ""},
-    {"to_string",   (PyCFunction)SuDoKu_to_string,     METH_VARARGS,   ""},
+    {"resolve",     (PyCFunction)SuDoKu_resolve,        METH_NOARGS,    ""},
+    {"estimate",    (PyCFunction)SuDoKu_estimate,       METH_NOARGS,    ""},
+    {"generate",    (PyCFunction)SuDoKu_generate,       METH_NOARGS,    ""},
+    {"from_string", (PyCFunction)SuDoKu_from_string,    METH_VARARGS,   ""},
+    {"to_string",   (PyCFunction)SuDoKu_to_string,      METH_KEYWORDS,  ""},
     {NULL}
 };
 

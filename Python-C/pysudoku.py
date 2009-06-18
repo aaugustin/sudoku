@@ -126,10 +126,12 @@ class SuDoKu(object):
             self.g = (self.n, [])
         for n in self.p[i][j]:
             self.debug('Trying %d at (%d, %d), search depth = %d' % (n, i, j, self.n))
-            tmp_g = self.g
-            self.g = None
+            if self.e:
+                tmp_g = self.g
+                self.g = None
             t = copy.deepcopy(self)
-            self.g = tmp_g
+            if self.e:
+                self.g = tmp_g
             try:
                 t._mark(i, j, n)
             except Contradiction:
