@@ -27,9 +27,9 @@ clean:
 	rm -f *.pyc
 
 .PHONY: test
-test: build
+test: debug
 	nosetests test/test_*.py
 
 .PHONY: test-cover
-test-cover: build
+test-cover: debug
 	nosetests --with-coverage --cover-inclusive --cover-erase test/test_*.py
