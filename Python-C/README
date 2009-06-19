@@ -1,0 +1,52 @@
+SuDoKu solver and generator
+===========================
+
+This program is a command-line utility to resolve and generate SuDoKu grids.
+
+Installation
+------------
+
+Run as root:
+$ make install
+
+Usage
+-----
+
+To obtain detailed usage information, run:
+$ sudoku --help
+
+When resolving a SuDoKu, the grid can be specified as an argument, on the
+standard input, or in a file with the --input option. Known cells in the
+grid are represented by the corresponding figure, empty cells by one these
+characters: underscore, dash, space, dot, 0 and line breaks are ignored.
+If there are several solutions to the grid, all of them are shown.
+
+When generating a SuDoKu, no arguments are necessary. It is possible to
+generate several grids at a time with the --count option.
+
+If the --estimate option is set, an estimation of the difficulty of the grid
+is printed. The estimation is a (float, int) pair and the figures are the
+resulution time for a human and for a computer, respectively. Difficulty for
+a human starts at 1 and is generally stays below 6, although no upper limit
+is enforced. Difficulty for a computer is the number of resolution steps
+required by the algorithm used in the program.
+
+The output format in which the grids are displayed can be selected with the
+--format option.
+
+The --debug option is only available when using the Python implementation or
+when the C implementation is compiled in debug mode.
+
+Programmer API
+--------------
+
+Internally, a Python module called "sudoku" is defined. Both a pure Python and
+an equivalent C implementation are available for this module. It contains two
+objects: a SuDoKu class and a Contradiction exception. The sudoku module will
+automatically import the best implementation available. Public methods of the
+SuDoKu class are documented in sudoku/csudoku.py.
+
+Copyright
+---------
+
+Copyright (C) 2008-2009 Aymeric Augustin. All rights reserved.
