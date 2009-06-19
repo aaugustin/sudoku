@@ -273,7 +273,7 @@ static PyGetSetDef SuDoKu_getseters[] = {
 static PyTypeObject SuDoKuType = {
     PyObject_HEAD_INIT(NULL)
     0,                              /*ob_size*/
-    "csudoku.SuDoKu",               /*tp_name*/
+    "sudoku.csudoku.SuDoKu",        /*tp_name*/
     sizeof(SuDoKu),                 /*tp_basicsize*/
     0,                              /*tp_itemsize*/
     (destructor)SuDoKu_dealloc,     /*tp_dealloc*/

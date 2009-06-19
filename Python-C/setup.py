@@ -15,8 +15,10 @@ setup(
     author_email='aymeric.augustin@m4x.org',
     url='http://myks.org/',
     description='SuDoKu generator and solver',
-    scripts=['sudoku'],
-    py_modules=['sudoku', 'pysudoku'],
-    ext_modules=[Extension('csudoku', ['csudoku.c'], define_macros=define_macros)],
+    scripts=['bin/sudoku'],
+    py_modules=['sudoku.pysudoku'],
+    ext_modules=[Extension('sudoku.csudoku',
+                           ['sudoku/csudoku.c'],
+                           define_macros=define_macros)],
     
 )

@@ -15,8 +15,13 @@ import optparse, sys
 
 try:
     from csudoku import SuDoKu, Contradiction
+    implementation = 'C'
 except ImportError:
     from pysudoku import SuDoKu, Contradiction
+    implementation = 'Python'
+
+
+__all__ = []
 
 
 def main():

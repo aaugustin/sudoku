@@ -105,7 +105,6 @@ SuDoKu__mark(SuDoKu *self, int i, int n)
     {
         if (SuDoKu__eliminate(self, rel[j], n) == -2)
         {
-            PyErr_SetNone(SuDoKu_Contradiction);
             return -2;
         }
     }
@@ -143,6 +142,7 @@ SuDoKu__eliminate(SuDoKu *self, int i, int n)
                 Py_DECREF(self->g);
                 self->g = Py_BuildValue("ic", self->n, '-');
             }
+            PyErr_SetNone(SuDoKu_Contradiction);
             return -2;
         }
         else if (self->c[i] == 1)
@@ -350,6 +350,7 @@ SuDoKu__unique_sol_aux(SuDoKu *self)
             SuDoKu__copy(self, t);
             if (SuDoKu__mark(t, i, n) == -2)
             {
+                PyErr_Clear();
                 continue;
             }
             scount = SuDoKu__unique_sol_aux(t);
@@ -654,6 +655,7 @@ SuDoKu_generate(SuDoKu *self)
                 }
                 if (SuDoKu__mark(self, order[i], n) == -2)
                 {
+                    PyErr_Clear();
                     ok = 0;
                     break;
                 }
@@ -972,12 +974,12 @@ initcsudoku(void)
                               "Contradiction in input, no solution exists.");
     if (d == NULL) return;
 
-    SuDoKu_Contradiction = PyErr_NewException("csudoku.Contradiction", NULL, d);
+    SuDoKu_Contradiction = PyErr_NewException("sudoku.csudoku.Contradiction", NULL, d);
     Py_DECREF(d);
     if (SuDoKu_Contradiction == NULL) return;
 
     // initialize module
-    m = Py_InitModule3("csudoku", module_methods,
+    m = Py_InitModule3("sudoku.csudoku", module_methods,
                        "SuDoKu generator and solver (C implementation).");
     if (m == NULL) return;
 

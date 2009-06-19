@@ -4,13 +4,13 @@
 # Avoid copying the resource forks when tar-ing on Mac OS X 10.5
 export COPYFILE_DISABLE=true
 
-build: csudoku.c csudoku.h
+build: sudoku/csudoku.c sudoku/csudoku.h
 	python setup.py build
-	ln -snf build/lib.*/csudoku.so .
+	cd sudoku && ln -snf ../build/lib.*/sudoku/csudoku.so .
 
-debug: csudoku.c csudoku.h
+debug: sudoku/csudoku.c sudoku/csudoku.h
 	python setup.py build --debug
-	ln -snf build/lib.*/csudoku.so .
+	cd sudoku && ln -snf ../build/lib.*/sudoku/csudoku.so .
 
 install: build setup.py
 	python setup.py install
@@ -21,10 +21,10 @@ dist: setup.py MANIFEST.in
 clean:
 	python setup.py clean
 	rm -rf build
-	rm -f csudoku.so
 	rm -rf dist
 	rm -f MANIFEST
-	rm -f *.pyc
+	rm -f sudoku/*.pyc
+	rm -f sudoku/csudoku.so
 
 .PHONY: test
 test: debug

@@ -19,7 +19,7 @@ refered to as self.module.SuDoKu.
 
 import os.path, re, StringIO, sys, unittest
 sys.path[:0] = [os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))]
-import csudoku, pysudoku
+import sudoku.csudoku, sudoku.pysudoku
 
 
 sudokus = (
@@ -38,12 +38,12 @@ sudokus = (
 
 class PyModule(object):
 
-    module = pysudoku
+    module = sudoku.pysudoku
 
 
 class CModule(object):
 
-    module = csudoku
+    module = sudoku.csudoku
 
 
 class ResolutionAndEstimation(object):
