@@ -22,7 +22,8 @@ except ImportError:
     implementation = 'Python'
 
 
-__all__ = [] # submodules are only an internal implementation choice
+# submodules are only an internal implementation choice
+__all__ = ['SuDoKu', 'Contradiction']
 
 
 def main():
