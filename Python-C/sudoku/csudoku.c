@@ -852,13 +852,91 @@ SuDoKu_init(SuDoKu *self, PyObject *args, PyObject *kwds)
 static PyObject*
 SuDoKu_str(SuDoKu *self)
 {
-    return SuDoKu_to_string(self, NULL, NULL);
+    char *coutput;
+    PyObject *output = NULL;
+
+    coutput = (char *)calloc(82, sizeof(char));
+    if (coutput == NULL)
+    {
+        return PyErr_NoMemory();
+    }
+
+    if (SuDoKu__to_string(self, self->o, coutput) < 0)
+    {
+        free(coutput);
+        return NULL;
+    }
+
+    output = PyString_FromString(coutput); // OK if NULL
+    free(coutput);
+    return output;
 }
 
 static PyObject*
 SuDoKu_repr(SuDoKu *self)
 {
-    Py_RETURN_NONE;
+    char *coutput, *p;
+    PyObject *output = NULL;
+    int i;
+    char first = 1, show_problem = 0;
+
+    coutput = (char *)calloc(135, sizeof(char));
+    if (coutput == NULL)
+    {
+        return PyErr_NoMemory();
+    }
+
+    p = stpcpy(coutput, "sudoku.SuDoKu(");
+
+    for (i = 0; i < 81; i++)
+    {
+        if (self->o[i])
+        {
+            show_problem = 1;
+            break;
+        }
+    }
+    if (show_problem)
+    {
+        first = 0;
+        p = stpcpy(p, "problem=\"");
+        if (SuDoKu__to_string(self, self->o, p) < 0)
+        {
+            free(coutput);
+            return NULL;
+        }
+        p += 81 * sizeof(char);
+        p = stpcpy(p, "\"");
+    }
+
+    if (!self->e)
+    {
+        if (first)
+        {
+            first = 0;
+        }
+        else
+        {
+            p = stpcpy(p, ", ");
+        }
+        p = stpcpy(p, "estimate=False");
+    }
+    if (self->d)
+    {
+        if (first)
+        {
+            first = 0;
+        }
+        else
+        {
+            p = stpcpy(p, ", ");
+        }
+        p = stpcpy(p, "debug=True");
+    }
+    p = stpcpy(p, ")");
+    output = PyString_FromString(coutput); // OK if NULL
+    free(coutput);
+    return output;
 }
 
 static int
