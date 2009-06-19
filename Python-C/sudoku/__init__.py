@@ -5,7 +5,8 @@
 """Command-line interface to the SuDoKu solver and generator.
 
 If the C version of the SuDoKu class is available, it will be used. Otherwise,
-the pure Python version will be used.
+the pure Python version will be used. This can be determined at runtime by
+testing whether 'implementation' is set to 'C' or 'Python'.
 """
 
 
@@ -21,7 +22,7 @@ except ImportError:
     implementation = 'Python'
 
 
-__all__ = []
+__all__ = [] # submodules are only an internal implementation choice
 
 
 def main():
@@ -50,9 +51,10 @@ def main():
     p.add_option('-c', '--count',
                  dest='count', type='int', metavar='CNT',
                  help='number of problems to generate')
-    p.add_option('-d', '--debug',
-                 action='store_true', default=False, dest='debug',
-                 help='enable verbose debug')
+    if hasattr(SuDoKu, 'debug'):
+        p.add_option('-d', '--debug',
+                     action='store_true', default=False, dest='debug',
+                     help='enable verbose debug')
     (options, args) = p.parse_args()
 
     def exit_on_error(error):
@@ -61,11 +63,15 @@ def main():
         p.print_help()
         sys.exit(1)
 
-    resolve_by_default = not any([options.resolve, options.generate,
-                                  options.estimate, options.show])
+    resolve_by_default = not any([options.resolve,
+                                  options.generate,
+                                  options.show])
 
     # Read problem if necessary
-    s = SuDoKu(estimate=options.estimate, debug=options.debug)
+    if hasattr(options, 'debug'):
+        s = SuDoKu(estimate=options.estimate, debug=options.debug)
+    else:
+        s = SuDoKu(estimate=options.estimate)
     if resolve_by_default or options.resolve or options.show:
         if len(args) == 1:
             s.from_string(args[0])
