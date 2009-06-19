@@ -25,21 +25,30 @@ class SuDoKu(object):
     relations = [[[(k, l) for k in range(9) for l in range(9) if (k == i or l == j or (k // 3 == i // 3 and l // 3 == j // 3)) and not (k == i and l == j)] for j in range(9)] for i in range(9)]
 
     def __init__(self, problem=None, estimate=True, debug=False):
+        """Initialize a SuDoKu object.
+
+        If problem is specified, the grid will be loaded from this argument.
+        See from_string for a description of the format of this argument.
+
+        If estimate is set to False, computations required for complexity
+        estimation will be skipped.
+
+        If debug is set to True, verbose debugging messages will be printed.
+        """
         # initial values: 1..9 or 0 = undefined
         self.o = [[0 for j in range(9)] for i in range(9)]
         if problem is not None:
             self.from_string(problem)
-        # set to false to disable complexity estimation
         self.e = estimate
-        # set to true to enable verbose debugging
         self.d = debug
 
     def debug(self, msg):                                   #pragma: no cover
+        """Print a debug message, only if the debug flag is set."""
         if self.d:
             print msg
 
     def _reset(self):
-        # Resolution
+        # Resolution:
         # computed values: 1..9 or 0 = undefined
         self.v = [[0 for j in range(9)] for i in range(9)]
         # possible values at each position: subset of 1..9
@@ -49,12 +58,39 @@ class SuDoKu(object):
         # number of known values
         self.n = 0
 
-        # Statistics: graph of resolution paths
+        # Statistics:
+        # graph of resolution paths
         if self.e:
             self.g = None
 
+    def _copy(self):
+        # Copy the whole object, except the graph, which is not required
+        # If self.e is False, there is no self.g anyway; it it is True,
+        # store self.g in a temporary variable during the copy.
+        if self.e:
+            tmp_g = self.g
+            self.g = None
+        t = copy.deepcopy(self)
+        if self.e:
+            self.g = tmp_g
+        return t
+
     # Resolution functions
     #---------------------
+
+    def resolve(self):
+        """Resolve a grid."""
+        # Step 0: initialize for resolution
+        self._reset()
+
+        # Step 1: complete all trivial stuff
+        for i in range(9):
+            for j in range(9):
+                if self.o[i][j] > 0:
+                    self._mark(i, j, self.o[i][j])
+
+        # Step 2: explore different paths
+        return self._resolve_aux()
 
     def _mark(self, i, j, n):
         # Ignore if the position is already marked
@@ -70,10 +106,10 @@ class SuDoKu(object):
         # Record the value
         self.v[i][j] = n
         self.n += 1
-        # Prevent detection of a contradiction at this position
+        # Prevent further detection of a contradiction by _eliminate
         self.p[i][j] = []
         # Apply rules
-        for (k, l) in SuDoKu.relations[i][j]:
+        for k, l in SuDoKu.relations[i][j]:
             self._eliminate(k, l, n)
         # Apply recursively
         if len(self.q) > 0:
@@ -86,52 +122,47 @@ class SuDoKu(object):
             self.p[i][j].remove(n)
         except ValueError:
             return
-        # This is executed only when an element has actually been
+
+        # What follows is executed only when an element has actually been
         # removed from the list, e.g. no more than once for a value of
         # len(self.p[i][j])
-        #
+
         # If there's no possible value, we are on a wrong branch
         if len(self.p[i][j]) == 0:
             self.debug('    Impossibility at (%d, %d), search depth = %d' % (i, j, self.n))
             if self.e:
                 self.g = (self.n, '-')
             raise Contradiction
-        # If there's one possible value, we mark it
+        # If there's one possible value, add it to the queue for further marking
         elif len(self.p[i][j]) == 1:
             self.q.append((i, j, self.p[i][j][0]))
 
     def _search_min(self):
+        # Find the position with the smallest set of possible values
         im = jm = -1
         lm = 10
         for i in range(9):
             for j in range(9):
                 if self.v[i][j] == 0 and len(self.p[i][j]) < lm:
-                    im = i
-                    jm = j
-                    lm = len(self.p[i][j])
+                    im, jm, lm = i, j, len(self.p[i][j])
         return im, jm
 
     def _resolve_aux(self):
-        # If the grid is complete
+        # If the grid is complete, there is a unique solution
         if self.n == 81:
             self.debug('    Found a solution: %s' % self.to_string(values=self.v))
             if self.e:
                 self.g = (self.n, '+')
             return [self.v]
-        # Otherwise look for the position that has the least alternatives
+        # Otherwise, look for the position that has the least alternatives,
+        # and try each alternative by recursively calling ourself
         i, j = self._search_min()
-        # Try each alternative
         r = []
         if self.e:
             self.g = (self.n, [])
         for n in self.p[i][j]:
             self.debug('Trying %d at (%d, %d), search depth = %d' % (n, i, j, self.n))
-            if self.e:
-                tmp_g = self.g
-                self.g = None
-            t = copy.deepcopy(self)
-            if self.e:
-                self.g = tmp_g
+            t = self._copy()
             try:
                 t._mark(i, j, n)
             except Contradiction:
@@ -143,21 +174,26 @@ class SuDoKu(object):
                 self.g[1].append(t.g)
         return r
 
-    def resolve(self):
-        # Step 0: initialize for resolution
-        self._reset()
-
-        # Step 1: complete all trivial stuff
-        for i in range(9):
-            for j in range(9):
-                if self.o[i][j] > 0:
-                    self._mark(i, j, self.o[i][j])
-
-        # Step 2: explore different paths
-        return self._resolve_aux()
-
     # Estimation functions
     #---------------------
+
+    def estimate(self):
+        """Estimate the difficulty of a grid.
+
+        A tuple of two numbers is returned. The first one is an estimation
+        of the complexity of the grid for a human being. The second one is
+        the complexity for a computer, given the algorithm used in resolve.
+
+        This method must only be called after resolve has been called with
+        e set to True. Otherwise, it will return None.
+        """
+        if not self.e or not hasattr(self, 'g') or self.g is None:
+            return
+        # Print resolution graph
+        if self.d:                                          #pragma: no cover
+            self._print_graph()
+        # Compute complexity
+        return (math.log(self._graph_len() / 81) + 1), self._graph_forks()
 
     def _print_graph(self, g=None, p=''):                   #pragma: no cover
         if g is None:
@@ -187,50 +223,11 @@ class SuDoKu(object):
                 f += self._graph_forks(sg) + 1
         return f
 
-    def estimate(self):
-        if not self.e or not hasattr(self, 'g'):
-            return
-        # Print resolution graph
-        if self.d:                                          #pragma: no cover
-            self._print_graph()
-        # Compute complexity
-        return (math.log(self._graph_len() / 81) + 1), self._graph_forks()
-
     # Generation functions
     #---------------------
 
-    def _unique_sol_aux(self):
-        # Simplified version of _resolve_aux(self)
-        i, j = self._search_min()
-        if i == -1:
-            return 1
-        else:
-            count = 0
-            for n in self.p[i][j]:
-                t = copy.deepcopy(self)
-                try:
-                    t._mark(i, j, n)
-                except Contradiction:
-                    continue
-                count += t._unique_sol_aux()
-                if count > 1:
-                    raise _MultipleSolutionsFound
-            return count # == 0 or 1
-
-    def _unique_sol(self):
-        # Simplified version of resolve(self)
-        self._reset()
-        for i in range(9):
-            for j in range(9):
-                if self.o[i][j] > 0:
-                    self._mark(i, j, self.o[i][j])
-        try:
-            self._unique_sol_aux()
-            return True
-        except _MultipleSolutionsFound:
-            return False
-
     def generate(self):
+        """Generate a random grid."""
         # Step 0: initialize for generation
         self._reset()
 
@@ -269,11 +266,45 @@ class SuDoKu(object):
                 self.o[i][j] = n
         self.debug('    Done.')
 
+    def _unique_sol(self):
+        # Simplified version of resolve(self)
+        self._reset()
+        for i in range(9):
+            for j in range(9):
+                if self.o[i][j] > 0:
+                    self._mark(i, j, self.o[i][j])
+        try:
+            self._unique_sol_aux()
+            return True
+        except _MultipleSolutionsFound:
+            return False
+
+    def _unique_sol_aux(self):
+        # Simplified version of _resolve_aux(self)
+        i, j = self._search_min()
+        if i == -1:
+            return 1
+        else:
+            count = 0
+            for n in self.p[i][j]:
+                t = self._copy()
+                try:
+                    t._mark(i, j, n)
+                except Contradiction:
+                    continue
+                count += t._unique_sol_aux()
+                if count > 1:
+                    raise _MultipleSolutionsFound
+            return count # == 0 or 1
+
     # Input functions
     #----------------
 
     def from_string(self, s):
-        """Loads a problem from string s and stores it in self.o."""
+        """Parse a string to load a grid.
+
+        Non-empty cells are represented by a figure and empty cells by one of
+        '_', '-', ' ', '.', and '0'. Line breaks are ignored. """
         i = j = 0
         for c in s:
             if c in '123456789':
@@ -297,6 +328,16 @@ class SuDoKu(object):
     #----------------
 
     def to_string(self, format='string', values=None):
+        """Format a grid in a string.
+
+        Available formats are:
+          - console: console representation, suitable for humans,
+          - string: compact representation, suitable for computers,
+          - html: export format, suitable for the web.
+
+        If values is specified, this grid will be displayed. Otherwise,
+        the original grid of self will be used.
+        """
         if format in ('console', 'html', 'string'):
             return getattr(self, '_to_' + format)(values or self.o)
         raise ValueError, 'Invalid format: %s.' % format
