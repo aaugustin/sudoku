@@ -25,8 +25,6 @@ import sudoku.csudoku, sudoku.pysudoku
 sudokus = (
     ('__6___2_49_1________853_6____2__5______8_7___________675___4__8____8_5_3___2_9___',
      '536918274921476835478532619392645781615897342847123956759364128264781593183259467'),
-    ('_7_5_____1_6____7___2_1_6_4_______984____8_5__1__23___6_9__2____________3___74__9',
-     '874536921136249875952817634267451398493768152518923746649382517721695483385174269'),
     ('__6_9___4_____2__8__754__6___893_2__3________9___2___5______5__2___18____61_____7',
      '526891734143672958897543162658937241312485679974126385789264513235718496461359827'),
     ('__7_26__8__4__8______17___2_1__92__5______6_17______3_____5____48_7_____62_____54',
@@ -49,14 +47,16 @@ class CModule(object):
 class ResolutionAndEstimation(object):
 
     def testResolve(self):
-        forks, estimations = [], []
-        for problem, solution in sudokus:
+        forks = []
+        for i, (problem, solution) in enumerate(sudokus):
             s = self.module.SuDoKu(problem)
             solutions = s.resolve()
             self.assertEqual(len(solutions), 1)
             self.assertEqual(s.to_string(values=solutions[0]), solution)
-            estimations.append(s.estimate())
-        self.assertEqual(estimations, sorted(estimations))
+            l, f = s.estimate()
+            self.assertTrue(i + 1 <= l < i + 2)
+            forks.append(f)
+        self.assertEqual(forks, sorted(forks))
 
     def testRedundancyIsAllowedInProblems(self):
         problem, solution = sudokus[0]
