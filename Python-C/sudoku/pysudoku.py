@@ -42,6 +42,20 @@ class SuDoKu(object):
         self.e = estimate
         self.d = debug
 
+    def __str__(self):
+        return self.to_string()
+
+    def __repr__(self):
+        args = []
+        s = self.to_string()
+        if s != 81 * '_':
+            args.append('problem="%s"' % s)
+        if not self.e:
+            args.append('estimate=False')
+        if self.d:
+            args.append('debug=True')
+        return "sudoku.SuDoKu(%s)" % ', '.join(args)
+
     def debug(self, msg):                                   #pragma: no cover
         """Print a debug message, only if the debug flag is set."""
         if self.d:

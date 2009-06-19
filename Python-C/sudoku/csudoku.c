@@ -849,6 +849,18 @@ SuDoKu_init(SuDoKu *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
+static PyObject*
+SuDoKu_str(SuDoKu *self)
+{
+    return SuDoKu_to_string(self, NULL, NULL);
+}
+
+static PyObject*
+SuDoKu_repr(SuDoKu *self)
+{
+    Py_RETURN_NONE;
+}
+
 static int
 SuDoKu_traverse(SuDoKu *self, visitproc visit, void *arg)
 {

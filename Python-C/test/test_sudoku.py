@@ -44,6 +44,38 @@ class CModule(object):
     module = sudoku.csudoku
 
 
+class ObjectProperties(object):
+
+    def testStr(self):
+        problem = sudokus[0][0]
+        s = self.module.SuDoKu()
+        self.assertEqual(str(s), '_' * 81)
+        s.from_string(problem)
+        self.assertEqual(str(s), problem)
+        s.resolve()
+        self.assertEqual(str(s), problem)
+
+    def testRepr(self):
+        problem = sudokus[0][0]
+        s = self.module.SuDoKu()
+        self.assertEqual(repr(s), 'sudoku.SuDoKu()')
+        s.d = True
+        self.assertEqual(repr(s), 'sudoku.SuDoKu(debug=True)')
+        s.e = False
+        self.assertEqual(repr(s), 'sudoku.SuDoKu(estimate=False, debug=True)')
+        s.d = False
+        self.assertEqual(repr(s), 'sudoku.SuDoKu(estimate=False)')
+        s.e = True
+        s.from_string(problem)
+        self.assertEqual(repr(s), 'sudoku.SuDoKu(problem="%s")' % problem)
+        s.d = True
+        self.assertEqual(repr(s), 'sudoku.SuDoKu(problem="%s", debug=True)' % problem)
+        s.e = False
+        self.assertEqual(repr(s), 'sudoku.SuDoKu(problem="%s", estimate=False, debug=True)' % problem)
+        s.d = False
+        self.assertEqual(repr(s), 'sudoku.SuDoKu(problem="%s", estimate=False)' % problem)
+        s.e = True
+
 class ResolutionAndEstimation(object):
 
     def testResolve(self):
@@ -98,7 +130,8 @@ class Input(object):
         self.problem = sudokus[0][0]
 
     def testFromStringSavesValuesInOriginalArray(self):
-        s = self.module.SuDoKu(self.problem)
+        s = self.module.SuDoKu()
+        s.from_string(self.problem)
         self.assertEqual(s.o[0][0], 0)
         self.assertEqual(s.o[0][2], 6)
         self.assertEqual(s.o[2][4], 3)
@@ -180,6 +213,14 @@ class Output(object):
     def testSolutionToString(self):
         output = self.s.to_string('string', self.g)
         self.assertEqual(output, self.solution)
+
+
+class TestPyObjectProperties(PyModule, ObjectProperties, unittest.TestCase):
+    pass
+
+
+class TestCObjectProperties(CModule, ObjectProperties, unittest.TestCase):
+    pass
 
 
 class TestPyResolutionAndEstimation(PyModule, ResolutionAndEstimation, unittest.TestCase):

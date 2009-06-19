@@ -214,6 +214,12 @@ SuDoKu_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static int
 SuDoKu_init(SuDoKu *self, PyObject *args, PyObject *kwds);
 
+static PyObject*
+SuDoKu_str(SuDoKu *self);
+
+static PyObject*
+SuDoKu_repr(SuDoKu *self);
+
 static int
 SuDoKu_traverse(SuDoKu *self, visitproc visit, void *arg);
 
@@ -281,18 +287,18 @@ static PyTypeObject SuDoKuType = {
     0,                              /*tp_getattr*/
     0,                              /*tp_setattr*/
     0,                              /*tp_compare*/
-    0,                              /*tp_repr*/
+    (reprfunc)SuDoKu_repr,          /*tp_repr*/
     0,                              /*tp_as_number*/
     0,                              /*tp_as_sequence*/
     0,                              /*tp_as_mapping*/
     0,                              /*tp_hash */
     0,                              /*tp_call*/
-    0,                              /*tp_str*/
+    (reprfunc)SuDoKu_str,           /*tp_str*/
     0,                              /*tp_getattro*/
     0,                              /*tp_setattro*/
     0,                              /*tp_as_buffer*/
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /*tp_flags*/
-    "SuDoKu",                       /* tp_doc */
+    0,                              /* tp_doc */
     (traverseproc)SuDoKu_traverse,  /* tp_traverse */
     (inquiry)SuDoKu_clear,          /* tp_clear */
     0,                              /* tp_richcompare */
