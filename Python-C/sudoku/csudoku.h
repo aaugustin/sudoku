@@ -153,14 +153,14 @@ static int
 SuDoKu__print_graph(PyObject *g);
 
 static int
-SuDoKu__print_graph_aux(PyObject *g, char *p);
+SuDoKu__print_graph(PyObject *g, char *p);
 #endif
 
 static int
 SuDoKu__graph_len(PyObject *g);
 
 static int
-SuDoKu__graph_len_aux(PyObject *g, int d);
+SuDoKu__graph_len(PyObject *g, int d);
 
 static int
 SuDoKu__graph_forks(PyObject *g);
@@ -172,7 +172,7 @@ static int
 SuDoKu__unique_sol(SuDoKu *self);
 
 static int
-SuDoKu__from_string(SuDoKu *self, const char *s, int l);
+SuDoKu__from_string(SuDoKu *self, const char *s, const int l);
 
 static int
 SuDoKu__to_console(SuDoKu *self, const int *v, char *s);
@@ -233,19 +233,19 @@ static PyObject *
 SuDoKu_get2darray(int *a);
 
 static int
-SuDoKu_set2darray(int *a, PyObject *value);
+SuDoKu_set2darray(int *a, PyObject *v);
 
 static PyObject *
 SuDoKu_getv(SuDoKu *self, void *closure);
 
 static int
-SuDoKu_setv(SuDoKu *self, PyObject *value, void *closure);
+SuDoKu_setv(SuDoKu *self, PyObject *v, void *closure);
 
 static PyObject *
 SuDoKu_geto(SuDoKu *self, void *closure);
 
 static int
-SuDoKu_seto(SuDoKu *self, PyObject *value, void *closure);
+SuDoKu_seto(SuDoKu *self, PyObject *v, void *closure);
 
 static PyMemberDef SuDoKu_members[] = {
     {"n", T_INT,       offsetof(SuDoKu, n), READONLY, ""},

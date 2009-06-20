@@ -3,7 +3,6 @@
  * Improves the performance of the pure Python version
  *
  * Copyright (c) 2008-2009 Aymeric Augustin
-   # Copyright (c) 2008-2009 Aymeric Augustin
  */
 
 #include "csudoku.h"
@@ -299,11 +298,11 @@ SuDoKu__resolve_aux(SuDoKu *self, PyObject **res)
 static int
 SuDoKu__print_graph(PyObject *g)
 {
-    return SuDoKu__print_graph_aux(g, "");
+    return SuDoKu__print_graph(g, "");
 }
 
 static int
-SuDoKu__print_graph_aux(PyObject *g, char *p)
+SuDoKu__print_graph(PyObject *g, char *p)
 {
     return 0;
 }
@@ -312,11 +311,11 @@ SuDoKu__print_graph_aux(PyObject *g, char *p)
 static int
 SuDoKu__graph_len(PyObject *g)
 {
-    return SuDoKu__graph_len_aux(g, 0);
+    return SuDoKu__graph_len(g, 0);
 }
 
 static int
-SuDoKu__graph_len_aux(PyObject *g, int d)
+SuDoKu__graph_len(PyObject *g, int d)
 {
     return 0;
 }
@@ -324,7 +323,30 @@ SuDoKu__graph_len_aux(PyObject *g, int d)
 static int
 SuDoKu__graph_forks(PyObject *g)
 {
-    return 0;
+    Py_ssize_t i;
+    PyObject *g1;
+    int f, sf;
+
+    g1 = PyTuple_GetItem(g, (Py_ssize_t)1);
+    if (g1 == NULL)
+    {
+        return -1;
+    }
+
+    f = 0;
+    if (PyList_Check(g1))
+    {
+        for (i = 0; i < PyList_Size(g1); i++)
+        {
+            sf = SuDoKu__graph_forks(PyList_GET_ITEM(g1, i));
+            if (sf < 0)
+            {
+                return -1;
+            }
+            f += sf + 1;
+        }
+    }
+    return f;
 }
 
 static int
@@ -613,6 +635,7 @@ SuDoKu_generate(SuDoKu *self)
     }
 #endif
     srandomdev();
+    // TODO this does not seem correct
     for (i = 0; i < 81; i++)
     {
         j = random() % (i + 1);
@@ -1033,9 +1056,9 @@ SuDoKu_getv(SuDoKu *self, void *closure)
 }
 
 static int
-SuDoKu_setv(SuDoKu *self, PyObject *value, void *closure)
+SuDoKu_setv(SuDoKu *self, PyObject *v, void *closure)
 {
-    return SuDoKu_set2darray(self->v, value);
+    return SuDoKu_set2darray(self->v, v);
 }
 
 static PyObject *
@@ -1045,9 +1068,9 @@ SuDoKu_geto(SuDoKu *self, void *closure)
 }
 
 static int
-SuDoKu_seto(SuDoKu *self, PyObject *value, void *closure)
+SuDoKu_seto(SuDoKu *self, PyObject *v, void *closure)
 {
-    return SuDoKu_set2darray(self->o, value);
+    return SuDoKu_set2darray(self->o, v);
 }
 
 /******************************************************************************/

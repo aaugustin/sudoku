@@ -5,9 +5,9 @@ import os.path, sys, time
 sys.path[:0] = [os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))]
 
 if len(sys.argv) == 2 and sys.argv[1] == 'C':
-    from csudoku import SuDoKu
+    from sudoku.csudoku import SuDoKu
 elif len(sys.argv) == 2 and sys.argv[1] == 'Python':
-    from pysudoku import SuDoKu
+    from sudoku.pysudoku import SuDoKu
 else:
     print 'Usage: %s [C|Python]' % os.path.basename(sys.argv[0])
     sys.exit(2)

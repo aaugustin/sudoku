@@ -79,7 +79,7 @@ class ObjectProperties(object):
 class ResolutionAndEstimation(object):
 
     def testResolve(self):
-        forks = []
+        forks = 0
         for i, (problem, solution) in enumerate(sudokus):
             s = self.module.SuDoKu(problem)
             solutions = s.resolve()
@@ -87,8 +87,8 @@ class ResolutionAndEstimation(object):
             self.assertEqual(s.to_string(values=solutions[0]), solution)
             l, f = s.estimate()
             self.assertTrue(i + 1 <= l < i + 2)
-            forks.append(f)
-        self.assertEqual(forks, sorted(forks))
+            self.assertTrue(forks < f)
+            forks = f
 
     def testRedundancyIsAllowedInProblems(self):
         problem, solution = sudokus[0]

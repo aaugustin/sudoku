@@ -7,18 +7,18 @@ Installation
 ------------
 
 Run as root:
-$ make install
+	$ make install
 
 Usage
 -----
 
 To obtain detailed usage information, run:
-$ sudoku --help
+	$ sudoku --help
 
 When resolving a SuDoKu, the grid can be specified as an argument, on the
 standard input, or in a file with the --input option. Known cells in the
 grid are represented by the corresponding figure, empty cells by one these
-characters: underscore, dash, space, dot, 0 and line breaks are ignored.
+characters: underscore, dash, space, dot, zero, and line breaks are ignored.
 If there are several solutions to the grid, all of them are shown.
 
 When generating a SuDoKu, no arguments are necessary. It is possible to
