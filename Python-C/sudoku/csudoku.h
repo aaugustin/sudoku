@@ -153,14 +153,14 @@ static int
 SuDoKu__print_graph(PyObject *g);
 
 static int
-SuDoKu__print_graph(PyObject *g, char *p);
+SuDoKu__print_graph_aux(PyObject *g, char *p);
 #endif
 
 static int
 SuDoKu__graph_len(PyObject *g);
 
 static int
-SuDoKu__graph_len(PyObject *g, int d);
+SuDoKu__graph_len_aux(PyObject *g, int d);
 
 static int
 SuDoKu__graph_forks(PyObject *g);

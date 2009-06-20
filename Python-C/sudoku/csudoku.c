@@ -298,11 +298,11 @@ SuDoKu__resolve_aux(SuDoKu *self, PyObject **res)
 static int
 SuDoKu__print_graph(PyObject *g)
 {
-    return SuDoKu__print_graph(g, "");
+    return SuDoKu__print_graph_aux(g, "");
 }
 
 static int
-SuDoKu__print_graph(PyObject *g, char *p)
+SuDoKu__print_graph_aux(PyObject *g, char *p)
 {
     return 0;
 }
@@ -311,13 +311,34 @@ SuDoKu__print_graph(PyObject *g, char *p)
 static int
 SuDoKu__graph_len(PyObject *g)
 {
-    return SuDoKu__graph_len(g, 0);
+    return SuDoKu__graph_len_aux(g, 0);
 }
 
 static int
-SuDoKu__graph_len(PyObject *g, int d)
+SuDoKu__graph_len_aux(PyObject *g, int d)
 {
-    return 0;
+    Py_ssize_t i;
+    int g0, l, sl;
+    PyObject *g1;
+
+    if (!PyArg_ParseTuple(g, "iO", &g0, &g1))
+    {
+        return -1;
+    }
+    l = g0 - d;
+    if (PyList_Check(g1))
+    {
+        for (i = 0; i < PyList_Size(g1); i++)
+        {
+            sl = SuDoKu__graph_len_aux(PyList_GET_ITEM(g1, i), g0);
+            if (sl < 0)
+            {
+                return -1;
+            }
+            l += sl + 1;
+        }
+    }
+    return l;
 }
 
 static int
