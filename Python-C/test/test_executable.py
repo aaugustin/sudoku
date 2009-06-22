@@ -5,12 +5,30 @@
 """Comparative tests of the Python and C implementations."""
 
 
-import glob, os, os.path, subprocess
+import difflib, glob, os, os.path, subprocess
+
+BASEDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+SDKFILE = os.path.join(BASEDIR, 'test', 'test2.sdk')
+SDK = file(SDKFILE).read()
 
 TESTS = (
     ([], ''),
+    (['-h'], ''),
+    # Resolution options
+    (['-r', SDK], ''),
+    (['-r', '-d', SDK], ''),
+    (['-r', '-e', SDK], ''),
+    (['-r', '-e', '-d', SDK], ''),
+    # Input from stdin, argument or file
+    (['-s'], SDK),
+    (['-s', SDK], ''),
+    (['-s', '-i', SDKFILE], ''),
+    # Outuput formats
+    (['-s'], SDK),
+    (['-s', '-f', 'console'], SDK),
+    (['-s', '-f', 'html'], SDK),
+    (['-s', '-f', 'string'], SDK),
 )
-BASEDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 POPENOPTIONS = {
     'bufsize': 1,
     'executable': 'bin/sudoku',
@@ -18,6 +36,7 @@ POPENOPTIONS = {
     'stdout': subprocess.PIPE,
     'stderr': subprocess.PIPE,
     'cwd': BASEDIR,
+    'env': {'PYTHONPATH': BASEDIR},
 }
 
 def select_implementation(implementation):
@@ -60,9 +79,19 @@ def run_tests():
             success += 1
         else:
             failure += 1
-            print "Test %d failed."
-            print "  Python output:", py_result
-            print "  C output:     ", c_result
+            print "!!! Test %d failed." % i
+            for line in difflib.unified_diff(py_result[0].split('\n'),
+                                             c_result[0].split('\n'),
+                                             fromfile='Python stdout',
+                                             tofile='C stdout',
+                                             lineterm=''):
+                print line
+            for line in difflib.unified_diff(py_result[1].split('\n'),
+                                             c_result[1].split('\n'),
+                                             fromfile='Python stderr',
+                                             tofile='C stderr',
+                                             lineterm=''):
+                print line
     if failure == 0:
         print "All tests passed (success=%d)." % success
     else:
