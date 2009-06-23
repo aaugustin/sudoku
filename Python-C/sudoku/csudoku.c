@@ -1003,6 +1003,7 @@ SuDoKu_repr(SuDoKu *self)
         }
         p = stpcpy(p, "estimate=False");
     }
+#ifdef DEBUG
     if (self->d)
     {
         if (first)
@@ -1015,6 +1016,7 @@ SuDoKu_repr(SuDoKu *self)
         }
         p = stpcpy(p, "debug=True");
     }
+#endif
     p = stpcpy(p, ")");
     output = PyString_FromString(coutput); // OK if NULL
     free(coutput);
