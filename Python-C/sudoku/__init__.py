@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2008-2009 Aymeric Augustin
+# Copyright (c) 2008-2009 Aymeric Augustin
 
 
 """Command-line interface to the SuDoKu solver and generator.

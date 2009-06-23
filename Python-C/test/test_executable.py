@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-# Copyright (C) 2008-2009 Aymeric Augustin
-
+# Copyright (c) 2008-2009 Aymeric Augustin
 
 """Comparative tests of the Python and C implementations."""
-
 
 import difflib, glob, os, os.path, subprocess
 
