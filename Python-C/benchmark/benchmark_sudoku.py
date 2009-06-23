@@ -1,34 +1,48 @@
 #!/usr/bin/env python
-# Copyright (C) 2008-2009 Aymeric Augustin
+# Copyright (c) 2008-2009 Aymeric Augustin
 
-import os.path, sys, time
-sys.path[:0] = [os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))]
+"""Benchmarking script for the Python and C implementations."""
+
+from __future__ import division
+import gc, os.path, sys, time
+
+BASEDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path[:0] = [BASEDIR]
 
 if len(sys.argv) == 2 and sys.argv[1] == 'C':
     from sudoku.csudoku import SuDoKu
+    repeat_count = 10
 elif len(sys.argv) == 2 and sys.argv[1] == 'Python':
     from sudoku.pysudoku import SuDoKu
+    repeat_count = 1
 else:
     print 'Usage: %s [C|Python]' % os.path.basename(sys.argv[0])
     sys.exit(2)
 
-puzzles = os.path.join(os.path.dirname(__file__), '95_hard_puzzles')
+puzzles = os.path.join(BASEDIR, 'benchmark', '95_hard_puzzles')
 stats = []
+repeats = [None] * repeat_count
 for problem in open(puzzles):
-    t = time.time()
-    s = SuDoKu(problem)
-    s.resolve()
-    t = time.time() - t
+    # Disable GC during resolution to avoid artifacts
+    gc.disable()
+    # Time one (Python) or ten (C) runs
+    t0 = time.time()
+    for i in repeats:
+        s = SuDoKu(problem)
+        s.resolve()
+    t1 = time.time()
+    gc.enable()
     l, f = s.estimate()
-    stats.append((t, l, f))
+    stats.append(((t1 - t0) / repeat_count, l, f))
+    del s
 
 print "test\ttime\tlevel\tforks"
 print "-----------------------------"
 for i, (t, l, f) in enumerate(stats):
-    print "%d\t%.3f\t%.3f\t%d" % (i + 1, t, l, f)
+    print "%d\t%.4f\t%.4f\t%d" % (i + 1, t, l, f)
 print "-----------------------------"
 
 times = map(lambda x: x[0], stats)
 print "Problems solved:     %d" % len(times)
-print "Total time:          %.2f" % sum(times)
-print "Problems / second:   %.2f" % (len(times) / sum(times))
+print "Total time:          %.3f" % sum(times)
+print "Problems / second:   %.3f" % (len(times) / sum(times))
