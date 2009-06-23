@@ -21,7 +21,7 @@ class _MultipleSolutionsFound(Exception):
 
 class SuDoKu(object):
 
-    # precompute relation map
+    # Precompute relation map
     relations = [[[(k, l) for k in range(9) for l in range(9) if (k == i or l == j or (k // 3 == i // 3 and l // 3 == j // 3)) and not (k == i and l == j)] for j in range(9)] for i in range(9)]
 
     def __init__(self, problem=None, estimate=True, debug=False):
@@ -35,7 +35,7 @@ class SuDoKu(object):
 
         If debug is set to True, verbose debugging messages will be printed.
         """
-        # initial values: 1..9 or 0 = undefined
+        # Initial values: 1..9 or 0 = undefined
         self.o = [[0 for j in range(9)] for i in range(9)]
         if problem is not None:
             self.from_string(problem)
@@ -62,18 +62,18 @@ class SuDoKu(object):
             print msg
 
     def _reset(self):
-        # Resolution:
-        # computed values: 1..9 or 0 = undefined
+        # Resolution
+        # Computed values: 1..9 or 0 = undefined
         self.v = [[0 for j in range(9)] for i in range(9)]
-        # possible values at each position: subset of 1..9
+        # Possible values at each position: subset of 1..9
         self.p = [[range(1, 10) for j in range(9)] for i in range(9)]
-        # queue of positions for which the value is known
+        # Queue of positions for which the value is known
         self.q = []
-        # number of known values
+        # Number of known values
         self.n = 0
 
-        # Statistics:
-        # graph of resolution paths
+        # Statistics
+        # Graph of resolution paths
         if self.e:
             self.g = None
 
@@ -147,6 +147,7 @@ class SuDoKu(object):
             if self.e:
                 self.g = (self.n, '-')
             raise Contradiction
+
         # If there's one possible value, add it to the queue for further marking
         elif len(self.p[i][j]) == 1:
             self.q.append((i, j, self.p[i][j][0]))
@@ -203,10 +204,8 @@ class SuDoKu(object):
         """
         if not self.e or not hasattr(self, 'g') or self.g is None:
             return
-        # Print resolution graph
         if self.d:                                          #pragma: no cover
             self._print_graph()
-        # Compute complexity
         return (math.log(self._graph_len() / 81) + 1), self._graph_forks()
 
     def _print_graph(self, g=None, p=''):                   #pragma: no cover
@@ -338,8 +337,8 @@ class SuDoKu(object):
         if 9 * i + j > 81:
             raise ValueError, 'Bad input: too much data.'
 
-    # Output funtions
-    #----------------
+    # Output functions
+    #-----------------
 
     def to_string(self, format='string', values=None):
         """Format a grid in a string.
