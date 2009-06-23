@@ -298,12 +298,50 @@ SuDoKu__resolve_aux(SuDoKu *self, PyObject **res)
 static int
 SuDoKu__print_graph(PyObject *g)
 {
-    return SuDoKu__print_graph_aux(g, "");
+    char p[163];
+
+    memset(p, ' ', 162);
+    p[162] = '\0';
+
+    return SuDoKu__print_graph_aux(g, p, 0);
 }
 
 static int
-SuDoKu__print_graph_aux(PyObject *g, char *p)
+SuDoKu__print_graph_aux(PyObject *g, char *p, int pl)
 {
+    int g0;
+    PyObject *g1;
+    char *c;
+    Py_ssize_t i;
+    char fmt[15];
+
+    if (!PyArg_ParseTuple(g, "iO", &g0, &g1))
+    {
+        return -1;
+    }
+
+    if (PyList_Check(g1))
+    {
+        PyOS_snprintf(fmt, 15, "%%.%ds%%02d\n", pl);
+        PySys_WriteStdout(fmt, p, g0);
+        for (i = 0; i < PyList_Size(g1); i++)
+        {
+            if (SuDoKu__print_graph_aux(PyList_GET_ITEM(g1, i), p, pl + 2) < 0)
+            {
+                return -1;
+            }
+        }
+    }
+    else
+    {
+        PyOS_snprintf(fmt, 15, "%%.%ds%%02d %%s\n", pl);
+        c = PyString_AsString(g1);
+        if (c == NULL)
+        {
+            return -1;
+        }
+        PySys_WriteStdout(fmt, p, g0, c);
+    }
     return 0;
 }
 #endif
@@ -317,14 +355,15 @@ SuDoKu__graph_len(PyObject *g)
 static int
 SuDoKu__graph_len_aux(PyObject *g, int d)
 {
-    Py_ssize_t i;
     int g0, l, sl;
     PyObject *g1;
+    Py_ssize_t i;
 
     if (!PyArg_ParseTuple(g, "iO", &g0, &g1))
     {
         return -1;
     }
+
     l = g0 - d;
     if (PyList_Check(g1))
     {
@@ -335,7 +374,7 @@ SuDoKu__graph_len_aux(PyObject *g, int d)
             {
                 return -1;
             }
-            l += sl + 1;
+            l += sl;
         }
     }
     return l;
@@ -344,12 +383,11 @@ SuDoKu__graph_len_aux(PyObject *g, int d)
 static int
 SuDoKu__graph_forks(PyObject *g)
 {
-    Py_ssize_t i;
+    int g0, f, sf;
     PyObject *g1;
-    int f, sf;
+    Py_ssize_t i;
 
-    g1 = PyTuple_GetItem(g, (Py_ssize_t)1);
-    if (g1 == NULL)
+    if (!PyArg_ParseTuple(g, "iO", &g0, &g1))
     {
         return -1;
     }
@@ -656,7 +694,7 @@ SuDoKu_generate(SuDoKu *self)
     }
 #endif
     srandomdev();
-    // TODO this does not seem correct
+    // This actually works and can be proved by recurrence
     for (i = 0; i < 81; i++)
     {
         j = random() % (i + 1);

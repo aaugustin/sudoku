@@ -153,7 +153,7 @@ static int
 SuDoKu__print_graph(PyObject *g);
 
 static int
-SuDoKu__print_graph_aux(PyObject *g, char *p);
+SuDoKu__print_graph_aux(PyObject *g, char *p, int pl);
 #endif
 
 static int

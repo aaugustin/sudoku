@@ -213,11 +213,11 @@ class SuDoKu(object):
         if g is None:
             g = self.g
         if isinstance(g[1], list):
-            print p + str(g[0]).zfill(2)
+            print '%s%02d' % (p, g[0])
             for sg in g[1]:
                 self._print_graph(sg, '  ' + p)
         else:
-            print p + str(g[0]).zfill(2) + ' ' + g[1]
+            print '%s%02d %s' % (p, g[0], g[1])
 
     def _graph_len(self, g=None, d=0):
         if g is None:
