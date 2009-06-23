@@ -2,7 +2,7 @@
 # Copyright (c) 2008-2009 Aymeric Augustin
 
 
-"""Command-line interface to the SuDoKu solver and generator.
+"""Command-line interface for the SuDoKu solver and generator.
 
 If the C version of the SuDoKu class is available, it will be used. Otherwise,
 the pure Python version will be used. This can be determined at runtime by
@@ -29,6 +29,7 @@ __all__ = ['SuDoKu', 'Contradiction']
 def main():
 
     p = optparse.OptionParser(usage='usage: %prog [options] [problem]')
+
     # Actions
     p.add_option('-r', '--resolve',
                  action='store_true', default=False, dest='resolve',
@@ -42,6 +43,7 @@ def main():
     p.add_option('-s', '--show',
                  action='store_true', default=False, dest='show',
                  help='print a problem without resolving it')
+
     # Options
     p.add_option('-i', '--input',
                  default='', dest='filename', metavar='SDK',
@@ -58,21 +60,25 @@ def main():
                      help='enable verbose debug')
     (options, args) = p.parse_args()
 
+    # Code factorization
     def exit_on_error(error):
         print error
         print
         p.print_help()
         sys.exit(1)
 
+    # Create a SuDoKu object
+    if hasattr(options, 'debug'):
+        s = SuDoKu(estimate=options.estimate, debug=options.debug)
+    else:
+        s = SuDoKu(estimate=options.estimate)
+
+    # Special case to enable a default behavior
     resolve_by_default = not any([options.resolve,
                                   options.generate,
                                   options.show])
 
     # Read problem if necessary
-    if hasattr(options, 'debug'):
-        s = SuDoKu(estimate=options.estimate, debug=options.debug)
-    else:
-        s = SuDoKu(estimate=options.estimate)
     if resolve_by_default or options.resolve or options.show:
         if len(args) == 1:
             s.from_string(args[0])
@@ -120,6 +126,3 @@ def main():
 
     if options.show:
         print s.to_string(options.format)
-
-if __name__ == '__main__':
-    main()
