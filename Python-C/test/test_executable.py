@@ -3,30 +3,31 @@
 
 """Comparative tests of the Python and C implementations."""
 
-import difflib, glob, os, os.path, subprocess
+import difflib, glob, os, os.path, subprocess, sys, time
 
 BASEDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 SDKFILE = os.path.join(BASEDIR, 'test', 'test2.sdk')
-SDK = file(SDKFILE).read()
+SDK = open(SDKFILE).read()
 
 TESTS = (
-    ([], ''),
-    (['-h'], ''),
+    ([], None),
+    (['-h'], None),
     # Resolution options
-    (['-r', SDK], ''),
-    (['-r', '-d', SDK], ''),
-    (['-r', '-e', SDK], ''),
-    (['-r', '-e', '-d', SDK], ''),
+    (['-r', SDK], None),
+    (['-r', '-d', SDK], None),
+    (['-r', '-e', SDK], None),
+    (['-r', '-e', '-d', SDK], None),
     # Input from stdin, argument or file
     (['-s'], SDK),
-    (['-s', SDK], ''),
-    (['-s', '-i', SDKFILE], ''),
+    (['-s', SDK], None),
+    (['-s', '-i', SDKFILE], None),
     # Outuput formats
     (['-s'], SDK),
     (['-s', '-f', 'console'], SDK),
     (['-s', '-f', 'html'], SDK),
     (['-s', '-f', 'string'], SDK),
 )
+
 POPENOPTIONS = {
     'bufsize': 1,
     'executable': 'bin/sudoku',
@@ -61,39 +62,66 @@ def select_implementation(implementation):
         raise ValueError('available implementations are Python and C')
 
 def run_tests():
+
+    t = time.time()
+
+    # Run the tests cases with the Python implementation
     py_results = []
     select_implementation('Python')
     for args, stdin in TESTS:
         p = subprocess.Popen(args, **POPENOPTIONS)
         py_results.append(p.communicate(stdin))
+        sys.stdout.write('P')
+        sys.stdout.flush()
+    sys.stdout.write('\n')
+
+    # Run the tests cases with the C implementation
     c_results = []
     select_implementation('C')
     for args, stdin in TESTS:
         p = subprocess.Popen(args, **POPENOPTIONS)
         c_results.append(p.communicate(stdin))
-    success = failure = 0
+        sys.stdout.write('C')
+        sys.stdout.flush()
+    sys.stdout.write('\n')
+
+    # Identify failures
+    failures = []
     for i, (py_result, c_result) in enumerate(zip(py_results, c_results)):
         if py_result == c_result:
-            success += 1
+            sys.stdout.write('.')
+            sys.stdout.flush()
         else:
-            failure += 1
-            print "!!! Test %d failed." % i
-            for line in difflib.unified_diff(py_result[0].split('\n'),
-                                             c_result[0].split('\n'),
-                                             fromfile='Python stdout',
-                                             tofile='C stdout',
-                                             lineterm=''):
-                print line
-            for line in difflib.unified_diff(py_result[1].split('\n'),
-                                             c_result[1].split('\n'),
-                                             fromfile='Python stderr',
-                                             tofile='C stderr',
-                                             lineterm=''):
-                print line
-    if failure == 0:
-        print "All tests passed (success=%d)." % success
+            sys.stdout.write('F')
+            sys.stdout.flush()
+            failures.append((i, py_result, c_result))
+    sys.stdout.write('\n')
+
+    t = time.time() - t
+
+    # Print failures
+    for i, py_result, c_result in failures:
+        print '=' * 70
+        print "FAIL: test: %d %s." % (i, TESTS[i])
+        print '-' * 70
+        for line in difflib.unified_diff(
+            py_result[0].split('\n'), c_result[0].split('\n'),
+            fromfile='Python stdout', tofile='C stdout', lineterm=''):
+            print line
+        for line in difflib.unified_diff(
+            py_result[1].split('\n'), c_result[1].split('\n'),
+            fromfile='Python stderr', tofile='C stderr', lineterm=''):
+            print line
+        print
+
+    # Print summary
+    print '-' * 70
+    print 'Ran %d tests in %.3fs' % (len(TESTS), t)
+    print
+    if failures:
+        print "FAILED (failures=%d)" % len(failures)
     else:
-        print "Some tests failed (success=%d, failure=%d)." % (success, failure)
+        print "OK"
 
 if __name__ == '__main__':
     run_tests()

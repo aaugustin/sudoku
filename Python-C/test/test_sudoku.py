@@ -17,6 +17,7 @@ As a consequence, within a test suite, the SuDoKu class must always be
 refered to as self.module.SuDoKu.
 """
 
+
 import os.path, re, StringIO, sys, unittest
 sys.path[:0] = [os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))]
 import sudoku.csudoku, sudoku.pysudoku

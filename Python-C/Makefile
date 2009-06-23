@@ -28,8 +28,9 @@ clean:
 
 .PHONY: test
 test: debug
-	nosetests test/test_*.py
+	python test/test_sudoku.py
+	python test/test_executable.py
 
 .PHONY: test-cover
 test-cover: debug
-	nosetests --with-coverage --cover-inclusive --cover-erase test/test_*.py
+	nosetests --with-coverage --cover-inclusive --cover-erase test/test_sudoku.py
