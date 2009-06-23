@@ -47,7 +47,7 @@ def main():
     # Options
     p.add_option('-i', '--input',
                  default='', dest='filename', metavar='SDK',
-                 help='read problem from a file instead of command line')
+                 help='read problem from a file instead of args or stdin')
     p.add_option('-f', '--format',
                  default='console', dest='format', metavar='FMT',
                  help='output format: console (default), html, string')
@@ -80,13 +80,16 @@ def main():
 
     # Read problem if necessary
     if resolve_by_default or options.resolve or options.show:
+        problem = ''
         if len(args) == 1:
-            s.from_string(args[0])
-        elif options.filename == '-':
-            s.from_string(sys.stdin.read())
+            problem = args[0]
         elif options.filename != '':
             with open(options.filename) as filein:
-                s.from_string(filein.read())
+                problem = filein.read()
+        elif not sys.stdin.isatty():
+            problem = sys.stdin.read()
+        if problem:
+            s.from_string(problem)
         else:
             exit_on_error('Error: No problem specified.')
 
