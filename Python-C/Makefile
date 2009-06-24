@@ -26,11 +26,16 @@ clean:
 	rm -f sudoku/*.pyc
 	rm -f sudoku/csudoku.so
 
+.PHONY: demo
+demo: build
+	@which -s open && { sleep 1; open http://localhost:55729; } &
+	@python test/webserve.py
+
 .PHONY: test
 test: debug
-	python test/test_sudoku.py
-	python test/test_executable.py
+	@python test/test_sudoku.py
+	@python test/test_executable.py
 
 .PHONY: test-cover
 test-cover: debug
-	nosetests --with-coverage --cover-package=sudoku.pysudoku --cover-erase test/test_sudoku.py
+	@nosetests --with-coverage --cover-package=sudoku.pysudoku --cover-erase test/test_sudoku.py
