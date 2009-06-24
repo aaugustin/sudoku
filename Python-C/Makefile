@@ -33,4 +33,4 @@ test: debug
 
 .PHONY: test-cover
 test-cover: debug
-	nosetests --with-coverage --cover-inclusive --cover-erase test/test_sudoku.py
+	nosetests --with-coverage --cover-package=sudoku.pysudoku --cover-erase test/test_sudoku.py
