@@ -37,7 +37,7 @@ TEMPLATE = """<?xml version="1.0"?>
   %(res)s
   <div class="time">Resolution: %(res_t).2fms</div>
 </div>
-<div class="difficulty">Grid difficulty: %(dif).2f</div>
+<div class="difficulty">Difficulty: %(dif).2f - <a href="/">New grid</a></div>
 <div class="copyright">Copyright (c) 2008-2009 Aymeric Augustin</div>
 </body>
 </html>
