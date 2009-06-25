@@ -121,6 +121,8 @@ class Generation(object):
     def testGenerate(self):
         s = self.module.SuDoKu()
         s.generate()
+        non_zero = len([None for i in range(9) for j in range(9) if s.o[i][j]])
+        self.assertTrue(0 < non_zero < 81)
         solutions = s.resolve()
         self.assertEqual(len(solutions), 1)
 
