@@ -121,8 +121,8 @@ def main():
 
     if options.generate:
         for i in range(options.count or 1):
-            s.generate()
-            print s.to_string(options.format)
+            grid = s.generate()
+            print s.to_string(options.format, grid)
             if options.estimate:
                 s.resolve()
                 print s.estimate()

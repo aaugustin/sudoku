@@ -11,14 +11,14 @@
 typedef struct {
     PyObject_HEAD
     /* definition */
-    int o[81];  // 1..9 or 0 = undefined
-    int v[81];  // 1..9 or 0 = undefined
+    int o[81];  /* 1..9 or 0 = undefined */
+    int v[81];  /* 1..9 or 0 = undefined */
     /* resolution */
-    int p[81];  // 00000000 00000000 000000xx xxxxxxxx0
-    int c[81];  // number of x == 1 in p
+    int p[81];  /* 00000000 00000000 0000000x xxxxxxxxx */
+    int c[81];  /* number of x == 1 in p */
     int q[81];
-    int q_i;    // in = push position
-    int q_o;    // out = pop position
+    int q_i;    /* in = push position */
+    int q_o;    /* out = pop position */
     int n;
     /* statistics */
     PyObject *g;
@@ -29,7 +29,7 @@ typedef struct {
 } SuDoKu;
 
 /* generated with the following Python code:
-print 'static int SuDoKu_relations[81][20] = {\n    {'                        \
+print 'static int SuDoKu__relations[81][20] = {\n    {'                        \
     + '},\n    {'.join([                                                       \
         ','.join([                                                             \
             '%2d' % (9 * k + l)                                                \
@@ -42,7 +42,7 @@ print 'static int SuDoKu_relations[81][20] = {\n    {'                        \
     + '}\n};'                                                                   
 */
 
-static int SuDoKu_relations[81][20] = {
+static int SuDoKu__relations[81][20] = {
     { 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,18,19,20,27,36,45,54,63,72},
     { 0, 2, 3, 4, 5, 6, 7, 8, 9,10,11,18,19,20,28,37,46,55,64,73},
     { 0, 1, 3, 4, 5, 6, 7, 8, 9,10,11,18,19,20,29,38,47,56,65,74},
@@ -183,7 +183,6 @@ SuDoKu__to_html(SuDoKu *self, const int *v, char *s);
 static int
 SuDoKu__to_string(SuDoKu *self, const int *v, char *s);
 
-
 /******************************************************************************/
 
 #ifdef DEBUG
@@ -270,8 +269,8 @@ static PyMethodDef SuDoKu_methods[] = {
 };
 
 static PyGetSetDef SuDoKu_getseters[] = {
-    {"v", (getter)SuDoKu_getv, (setter)SuDoKu_setv, "Current grid", NULL},
-    {"o", (getter)SuDoKu_geto, (setter)SuDoKu_seto, "Original grid", NULL},
+    {"v", (getter)SuDoKu_getv, (setter)SuDoKu_setv, "", NULL},
+    {"o", (getter)SuDoKu_geto, (setter)SuDoKu_seto, "", NULL},
     {NULL}
 };
 

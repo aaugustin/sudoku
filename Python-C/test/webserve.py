@@ -31,13 +31,13 @@ TEMPLATE = """<?xml version="1.0"?>
 <body>
 <div class="grid">
   %(gen)s
-  <div class="time">Generation: %(gen_t).2f ms.</div>
+  <div class="time">Generation: %(gen_t).2fms</div>
 </div>
 <div class="grid">
   %(res)s
-  <div class="time">Resolution: %(res_t).2f ms.</div>
+  <div class="time">Resolution: %(res_t).2fms</div>
 </div>
-<div class="difficulty">Grid difficulty: %(dif).2f.</div>
+<div class="difficulty">Grid difficulty: %(dif).2f</div>
 <div class="copyright">Copyright (c) 2008-2009 Aymeric Augustin</div>
 </body>
 </html>

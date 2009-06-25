@@ -20,7 +20,7 @@ SuDoKu__reset(SuDoKu *self)
     for (i = 0; i < 81; i++)
     {
         self->v[i] = 0;
-        self->p[i] = 1022; /* (1 << 10) - 2 */
+        self->p[i] = 511; /* (1 << 9) - 1 */
         self->c[i] = 9;
         self->q[i] = -1;
     }
@@ -69,14 +69,14 @@ SuDoKu__copy(SuDoKu *self, SuDoKu *t)
 static int
 SuDoKu__mark(SuDoKu *self, int i, int n)
 {
-    int *rel, j;
+    int *rel, j, r;
 
     if (self->v[i] == n)
     {
         return 0;
     }
 
-    if (!((self->p[i] >> n) & 1))
+    if (!((self->p[i] >> (n - 1)) & 1))
     {
 #ifdef DEBUG
         if (self->d)
@@ -88,6 +88,10 @@ SuDoKu__mark(SuDoKu *self, int i, int n)
         {
             Py_DECREF(self->g);
             self->g = Py_BuildValue("ic", self->n, '-');
+            if (self->g == NULL)
+            {
+                return -1;
+            }
         }
 
         PyErr_SetNone(SuDoKu_Contradiction);
@@ -99,12 +103,13 @@ SuDoKu__mark(SuDoKu *self, int i, int n)
     self->p[i] = 0;
     self->c[i] = 0;
 
-    rel = SuDoKu_relations[i];
+    rel = SuDoKu__relations[i];
     for (j = 0; j < 20; j++)
     {
-        if (SuDoKu__eliminate(self, rel[j], n) == -2)
+        r = SuDoKu__eliminate(self, rel[j], n);
+        if (r < 0)
         {
-            return -2;
+            return r;
         }
     }
 
@@ -112,10 +117,13 @@ SuDoKu__mark(SuDoKu *self, int i, int n)
     {
         i = self->q[self->q_o];
         self->q_o += 1;
-        n = fls(self->p[i]) - 1;
-        if (SuDoKu__mark(self, i, n) == -2)
+        /* there is only one non-zero bit if self->p[i] at this point,
+           ffs or fls could be used indifferently */
+        n = ffs(self->p[i]);
+        r = SuDoKu__mark(self, i, n);
+        if (r < 0)
         {
-            return -2;
+            return r;
         }
     }
     return 0;
@@ -124,9 +132,9 @@ SuDoKu__mark(SuDoKu *self, int i, int n)
 static int
 SuDoKu__eliminate(SuDoKu *self, int i, int n)
 {
-    if ((self->p[i] >> n) & 1)
+    if ((self->p[i] >> (n - 1)) & 1)
     {
-        self->p[i] &= 1022 - (1 << n);
+        self->p[i] ^= 1 << (n - 1);
         self->c[i] -= 1;
         if (self->c[i] == 0)
         {
@@ -140,6 +148,10 @@ SuDoKu__eliminate(SuDoKu *self, int i, int n)
             {
                 Py_DECREF(self->g);
                 self->g = Py_BuildValue("ic", self->n, '-');
+                if (self->g == NULL)
+                {
+                    return -1;
+                }
             }
             PyErr_SetNone(SuDoKu_Contradiction);
             return -2;
@@ -148,7 +160,6 @@ SuDoKu__eliminate(SuDoKu *self, int i, int n)
         {
             self->q[self->q_i] = i;
             self->q_i += 1;
-            return 0;
         }
     }
     return 0;
@@ -177,8 +188,10 @@ SuDoKu__resolve_aux(SuDoKu *self, PyObject **res)
 {
     PyObject *grid, *sg = NULL, *sres = NULL;
     SuDoKu *t;
-    int i, n, x;
-
+    int i, n, r, x;
+#ifdef DEBUG
+    char output[82];
+#endif
     Py_XDECREF(*res);
     *res = PyList_New(0);
     if (*res == NULL)
@@ -191,12 +204,8 @@ SuDoKu__resolve_aux(SuDoKu *self, PyObject **res)
 #ifdef DEBUG
         if (self->d)
         {
-            PySys_WriteStdout("    Found a solution: ");
-            for (i = 0; i < 81; i++)
-            {
-                PySys_WriteStdout("%d", self->v[i]);
-            }
-            PySys_WriteStdout("\n");
+            SuDoKu__to_string(self, self->v, output);
+            PySys_WriteStdout("    Found a solution: %s\n", output);
         }
 #endif
         if (self->e)
@@ -227,11 +236,10 @@ SuDoKu__resolve_aux(SuDoKu *self, PyObject **res)
     i = SuDoKu__search_min(self);
 
     t = (SuDoKu*)PyType_GenericNew(&SuDoKuType, NULL, NULL);
-    // t = PyInstance_New(&SuDoKuType, NULL, NULL);
 
     for (n = 1; n < 10; n++)
     {
-        if ((self->p[i] >> n) & 1)
+        if ((self->p[i] >> (n - 1)) & 1)
         {
 #ifdef DEBUG
             if (self->d)
@@ -243,8 +251,10 @@ SuDoKu__resolve_aux(SuDoKu *self, PyObject **res)
             {
                 return -1;
             }
-            if (SuDoKu__mark(t, i, n) == -2)
+            r = SuDoKu__mark(t, i, n);
+            if (r == -2)
             {
+                PyErr_Clear();
                 if (self->e)
                 {
                     if (PyList_Append(sg, t->g) < 0)
@@ -252,8 +262,11 @@ SuDoKu__resolve_aux(SuDoKu *self, PyObject **res)
                         return -1;
                     }
                 }
-                PyErr_Clear();
                 continue;
+            }
+            else if (r < 0)
+            {
+                return r;
             }
             if (SuDoKu__resolve_aux(t, &sres) < 0)
             {
@@ -289,6 +302,10 @@ SuDoKu__resolve_aux(SuDoKu *self, PyObject **res)
     {
         Py_XDECREF(self->g);
         self->g = Py_BuildValue("iO", self->n, sg);
+        if (self->g == NULL)
+        {
+            return -1;
+        }
     }
 
     return 0;
@@ -372,7 +389,7 @@ SuDoKu__graph_len_aux(PyObject *g, int d)
             sl = SuDoKu__graph_len_aux(PyList_GET_ITEM(g1, i), g0);
             if (sl < 0)
             {
-                return -1;
+                return sl;
             }
             l += sl;
         }
@@ -400,7 +417,7 @@ SuDoKu__graph_forks(PyObject *g)
             sf = SuDoKu__graph_forks(PyList_GET_ITEM(g1, i));
             if (sf < 0)
             {
-                return -1;
+                return sf;
             }
             f += sf + 1;
         }
@@ -426,22 +443,26 @@ SuDoKu__unique_sol_aux(SuDoKu *self)
     count = 0;
     for (n = 1; n < 10; n++)
     {
-        if ((self->p[i] >> n) & 1)
+        if ((self->p[i] >> (n - 1)) & 1)
         {
-            SuDoKu__copy(self, t);
+            if (SuDoKu__copy(self, t) < 0)
+            {
+                return -1;
+            }
             if (SuDoKu__mark(t, i, n) == -2)
             {
                 PyErr_Clear();
                 continue;
             }
             scount = SuDoKu__unique_sol_aux(t);
-            if (scount == -2)
+            if (scount < 0)
             {
-                return -2;
+                return scount;
             }
             count += scount;
             if (count > 1)
             {
+                // -2 means that several solutions were found
                 return -2;
             }
         }
@@ -467,12 +488,7 @@ SuDoKu__unique_sol(SuDoKu *self)
         }
     }
 
-    if (SuDoKu__unique_sol_aux(self) == -2)
-    {
-        return -2;
-    }
-
-    return 0;
+    return SuDoKu__unique_sol_aux(self);
 }
 
 static int
@@ -488,12 +504,12 @@ SuDoKu__from_string(SuDoKu *self, const char *s, const int l)
         c = s[k];
         if (c == '\n' || c == '\r')
         {
-            // ignore non-significant characters
+            /* ignore non-significant characters */
             continue;
         }
         else if (i >= 81)
         {
-            // must be checked here to allow trailing whitespace
+            /* must be checked here to allow trailing whitespace */
             break;
         }
         else if (c >= '1' && c <= '9')
@@ -502,7 +518,7 @@ SuDoKu__from_string(SuDoKu *self, const char *s, const int l)
         }
         else if (c == '_' || c == '-' || c == ' ' || c == '.' || c == '0')
         {
-            // nothing to do
+            /* nothing to do */
         }
         else
         {
@@ -547,7 +563,7 @@ SuDoKu__to_console(SuDoKu *self, const int *v, char *s)
         }
         p1 = stpcpy(p2, sep);
     }
-    p1[-1] = '\0'; // remove the last \n
+    p1[-1] = '\0'; /* remove the last \n */
     return 0;
 }
 
@@ -604,6 +620,7 @@ SuDoKu__to_string(SuDoKu *self, const int *v, char *s)
             return -1;
         }
     }
+    s[81] = '\0';
     return 0;
 }
 
@@ -633,10 +650,10 @@ SuDoKu_resolve(SuDoKu *self)
     int i;
     PyObject *results = NULL;
 
-    /* Step 0 */
+    /* step 0 */
     SuDoKu__reset(self);
 
-    /* Step 1 */
+    /* step 1 */
     for (i = 0; i < 81; i++)
     {
         if (self->o[i] > 0)
@@ -648,7 +665,7 @@ SuDoKu_resolve(SuDoKu *self)
         }
     }
 
-    /* Step 2 */
+    /* step 2 */
     if (SuDoKu__resolve_aux(self, &results) < 0)
     {
         return NULL;
@@ -674,76 +691,73 @@ SuDoKu_estimate(SuDoKu *self)
 #endif
 
     l = SuDoKu__graph_len(self->g);
+    if (l < 0)
+    {
+        return NULL;
+    }
     f = SuDoKu__graph_forks(self->g);
+    if (f < 0)
+    {
+        return NULL;
+    }
     return Py_BuildValue("di", log((double)l / 81.0) + 1.0, f);
 }
 
 static PyObject*
 SuDoKu_generate(SuDoKu *self)
 {
-    int i, j, order[81], count, n, ok;
-
-    /* Step 0 */
+    int i, j, k, m, n, r, order[81];
+#ifdef DEBUG
+    int count;
+#endif
+    /* step 0 */
     SuDoKu__reset(self);
 
-    /* Step 1 */
+    /* step 1 */
 #ifdef DEBUG
     if (self->d)
     {
-        PySys_WriteStdout("Shuffling positions...\n");
+        PySys_WriteStdout("Generating a random grid...\n");
     }
+    count = 0;
 #endif
     srandomdev();
-    // This actually works and can be proved by recurrence
+    /* shuffle order, this actually works and can be proved by recurrence */
     for (i = 0; i < 81; i++)
     {
         j = random() % (i + 1);
         order[i] = order[j];
         order[j] = i;
     }
-#ifdef DEBUG
-    if (self->d)
-    {
-        PySys_WriteStdout("    Done.\n");
-    }
-#endif
-
-    /* Step 2 */
-#ifdef DEBUG
-    if (self->d)
-    {
-        PySys_WriteStdout("Generating a random grid...\n");
-    }
-#endif
-    count = 0;
     while (1)
     {
+#ifdef DEBUG
         count += 1;
+#endif
         SuDoKu__reset(self);
-        ok = 1;
+        r = 1;
         for (i = 0; i < 81; i++)
         {
             if (self->v[order[i]] == 0)
             {
-                n = 0;
-                j = (random() % self->c[order[i]]) + 1;
-                while (j > 0)
+                /* choose a random possibility at position order[i] */
+                j = self->p[order[i]];
+                m = (random() % self->c[order[i]]);
+                for (k = 0; k < m; k++)
                 {
-                    n += 1;
-                    if ((self->p[order[i]] >> n) & 1)
-                    {
-                        j -= 1;
-                    }
+                    /* set least significant bit to 0 */
+                    j &= j - 1;
                 }
+                n = ffs(j);
                 if (SuDoKu__mark(self, order[i], n) == -2)
                 {
                     PyErr_Clear();
-                    ok = 0;
+                    r = 0;
                     break;
                 }
             }
         }
-        if (ok)
+        if (r)
         {
             break;
         }
@@ -755,7 +769,7 @@ SuDoKu_generate(SuDoKu *self)
     }
 #endif
 
-    /* Step 3 */
+    /* step 2 */
 #ifdef DEBUG
     if (self->d)
     {
@@ -763,11 +777,19 @@ SuDoKu_generate(SuDoKu *self)
     }
 #endif
     memcpy(self->o, self->v, 81 * sizeof(int));
+    /* shuffle order */
+    for (i = 0; i < 81; i++)
+    {
+        j = random() % (i + 1);
+        order[i] = order[j];
+        order[j] = i;
+    }
     for (i = 0; i < 81; i++)
     {
         n = self->o[order[i]];
         self->o[order[i]] = 0;
-        if (SuDoKu__unique_sol(self))
+        r = SuDoKu__unique_sol(self);
+        if (r >= 0)
         {
 #ifdef DEBUG
             if (self->d)
@@ -776,18 +798,21 @@ SuDoKu_generate(SuDoKu *self)
             }
 #endif
         }
-        else
+        else if (r == -2)
         {
-            self->o[order[i]] = n;
 #ifdef DEBUG
             if (self->d)
             {
                 PySys_WriteStdout("    Keeping %d at (%d, %d)\n", n, order[i] / 9, order[i] % 9);
             }
 #endif
+            self->o[order[i]] = n;
+        }
+        else
+        {
+            return NULL;
         }
     }
-
 #ifdef DEBUG
     if (self->d)
     {
@@ -795,7 +820,7 @@ SuDoKu_generate(SuDoKu *self)
     }
 #endif
 
-    Py_RETURN_NONE;
+    return SuDoKu_get2darray(self->o);
 }
 
 static PyObject*
@@ -874,6 +899,7 @@ SuDoKu_to_string(SuDoKu *self, PyObject *args, PyObject *kwds)
 
     if (formatter(self, cvalues, coutput) >= 0)
     {
+        /* can be NULL, will be returned after free-ing coutput */
         output = PyString_FromString(coutput);
     }
 
@@ -949,7 +975,8 @@ SuDoKu_str(SuDoKu *self)
         return NULL;
     }
 
-    output = PyString_FromString(coutput); // OK if NULL
+    /* can be NULL, will be returned after free-ing coutput */
+    output = PyString_FromString(coutput);
     free(coutput);
     return output;
 }
@@ -1018,7 +1045,8 @@ SuDoKu_repr(SuDoKu *self)
     }
 #endif
     p = stpcpy(p, ")");
-    output = PyString_FromString(coutput); // OK if NULL
+    /* can be NULL, will be returned after free-ing coutput */
+    output = PyString_FromString(coutput);
     free(coutput);
     return output;
 }
@@ -1044,7 +1072,7 @@ SuDoKu_dealloc(SuDoKu *self)
     self->ob_type->tp_free((PyObject*)self);
 }
 
-/* Returns a new reference */
+/* returns a new reference */
 static PyObject *
 SuDoKu_get2darray(int *a)
 {
@@ -1143,7 +1171,7 @@ initcsudoku(void)
 
     if (PyType_Ready(&SuDoKuType) < 0) return;
 
-    // create SuDoKu_Contradiction
+    /* create SuDoKu_Contradiction */
     d = Py_BuildValue("{ss}", "__doc__",
                               "Contradiction in input, no solution exists.");
     if (d == NULL) return;
@@ -1152,12 +1180,12 @@ initcsudoku(void)
     Py_DECREF(d);
     if (SuDoKu_Contradiction == NULL) return;
 
-    // initialize module
+    /* initialize module */
     m = Py_InitModule3("sudoku.csudoku", module_methods,
                        "SuDoKu generator and solver (C implementation).");
     if (m == NULL) return;
 
-    // insert a new reference to objects in the module dictionnary
+    /* insert a new reference to objects in the module dictionnary */
     Py_INCREF(&SuDoKuType);
     if (PyModule_AddObject(m, "SuDoKu", (PyObject *)&SuDoKuType) < 0)
     {

@@ -278,6 +278,7 @@ class SuDoKu(object):
                 self.debug('    Keeping %d at (%d, %d)' % (n, i, j))
                 self.o[i][j] = n
         self.debug('    Done.')
+        return self.o
 
     def _unique_sol(self):
         # Simplified version of resolve(self)
