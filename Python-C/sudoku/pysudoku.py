@@ -243,6 +243,7 @@ class SuDoKu(object):
         """Generate a random grid."""
         # Step 0: initialize for generation
         self._reset()
+        e, self.e = self.e, False
 
         # Step 1: generate problem
         self.debug('Generating a random grid...')
@@ -278,6 +279,8 @@ class SuDoKu(object):
                 self.debug('    Keeping %d at (%d, %d)' % (n, i, j))
                 self.o[i][j] = n
         self.debug('    Done.')
+
+        self.e = e
         return self.o
 
     def _unique_sol(self):

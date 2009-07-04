@@ -741,12 +741,14 @@ SuDoKu_estimate(SuDoKu *self)
 static PyObject*
 SuDoKu_generate(SuDoKu *self)
 {
-    int i, j, k, m, n, r, order[81];
+    int e, i, j, k, m, n, r, order[81];
 #ifdef DEBUG
     int count;
 #endif
     /* step 0 */
     SuDoKu__reset(self);
+    e = self->e;
+    self->e = 0;
 
     /* step 1 */
 #ifdef DEBUG
@@ -855,6 +857,7 @@ SuDoKu_generate(SuDoKu *self)
     }
 #endif
 
+    self->e = e;
     return SuDoKu_get2darray(self->o);
 }
 
