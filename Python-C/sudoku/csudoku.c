@@ -183,6 +183,7 @@ SuDoKu__search_min(SuDoKu *self)
     return im;
 }
 
+/* caller will receive ownership of a new reference to *res */
 static int
 SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
 {
@@ -192,8 +193,9 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
 #ifdef DEBUG
     char output[82];
 #endif
+    int rv = 0;
 
-    Py_XDECREF(*res);
+    /* *res is always NULL in this implementation */
     *res = PyList_New(0);
     if (*res == NULL)
     {
@@ -234,6 +236,7 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
         {
             return -1;
         }
+        /* owned reference sg must be decref'd on exit if and only if self->e */
     }
 
     t = &ws[self->n];
@@ -251,8 +254,10 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
 #endif
             if (SuDoKu__copy(self, t) < 0)
             {
-                return -1;
+                rv = -1;
+                goto exit;
             }
+            /* owned reference t->g must be decref'd on exit if and only if self->e */
             r = SuDoKu__mark(t, i, n);
             if (r == -2)
             {
@@ -261,40 +266,48 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
                 {
                     if (PyList_Append(sg, t->g) < 0)
                     {
-                        return -1;
+                        rv = -1;
+                        goto exit;
                     }
                 }
                 continue;
             }
             else if (r < 0)
             {
-                return r;
+                rv = r;
+                goto exit;
             }
             if (SuDoKu__resolve_aux(t, ws, &sres) < 0)
             {
-                return -1;
+                rv = -1;
+                goto exit;
             }
+            /* owned reference sres must be decref'd on exit */
             if (!PyList_Check(sres))
             {
-                return -1;
+                rv = -1;
+                goto exit;
             }
             for (x = 0; x < PyList_Size(sres); x++)
             {
-                grid = PyList_GetItem(sres, x);
+                grid = PyList_GetItem(sres, x); /* borrowed reference */
                 if (grid == NULL)
                 {
-                    return -1;
+                    rv = -1;
+                    goto exit;
                 }
                 if (PyList_Append(*res, grid) < 0)
                 {
-                    return -1;
+                    rv = -1;
+                    goto exit;
                 }
             }
             if (self->e)
             {
                 if (PyList_Append(sg, t->g) < 0)
                 {
-                    return -1;
+                    rv = -1;
+                    goto exit;
                 }
             }
         }
@@ -306,11 +319,19 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
         self->g = Py_BuildValue("iO", self->n, sg);
         if (self->g == NULL)
         {
-            return -1;
+            rv = -1;
+            goto exit;
         }
     }
 
-    return 0;
+exit:
+    if (self->e)
+    {
+        Py_DECREF(sg);
+        Py_XDECREF(t->g);
+    }
+    Py_XDECREF(sres);
+    return rv;
 }
 
 #ifdef DEBUG
@@ -657,6 +678,14 @@ SuDoKu_resolve(SuDoKu *self)
 
     /* step 0 */
     SuDoKu__reset(self);
+    /* make sure XDECREF on g is safe */
+    if (self->e)
+    {
+        for (i = 0; i < 81; i++)
+        {
+            ws[i].g = NULL;
+        }
+    }
 
     /* step 1 */
     for (i = 0; i < 81; i++)
