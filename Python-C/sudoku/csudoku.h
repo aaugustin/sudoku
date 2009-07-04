@@ -146,7 +146,7 @@ static int
 SuDoKu__search_min(SuDoKu *self);
 
 static int
-SuDoKu__resolve_aux(SuDoKu *self, PyObject **res);
+SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res);
 
 #ifdef DEBUG
 static int

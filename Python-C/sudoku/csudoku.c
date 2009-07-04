@@ -184,7 +184,7 @@ SuDoKu__search_min(SuDoKu *self)
 }
 
 static int
-SuDoKu__resolve_aux(SuDoKu *self, PyObject **res)
+SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
 {
     PyObject *grid, *sg = NULL, *sres = NULL;
     SuDoKu *t;
@@ -236,9 +236,8 @@ SuDoKu__resolve_aux(SuDoKu *self, PyObject **res)
         }
     }
 
+    t = &ws[self->n];
     i = SuDoKu__search_min(self);
-
-    t = (SuDoKu*)PyType_GenericNew(&SuDoKuType, NULL, NULL);
 
     for (n = 1; n < 10; n++)
     {
@@ -271,7 +270,7 @@ SuDoKu__resolve_aux(SuDoKu *self, PyObject **res)
             {
                 return r;
             }
-            if (SuDoKu__resolve_aux(t, &sres) < 0)
+            if (SuDoKu__resolve_aux(t, ws, &sres) < 0)
             {
                 return -1;
             }
@@ -476,7 +475,8 @@ static int
 SuDoKu__unique_sol(SuDoKu *self)
 {
     int i;
-    SuDoKu ws[81]; /* workspace */
+    /* workspace - actual PyObjects are not needed, C structs are enough */
+    SuDoKu ws[81];
 
     SuDoKu__reset(self);
 
@@ -490,10 +490,6 @@ SuDoKu__unique_sol(SuDoKu *self)
             }
         }
     }
-
-    printf("%d\n", &ws[0]);
-    printf("%d\n", &ws[1] - &ws[0]);
-    printf("%d\n", &ws[80] - &ws[0]);
 
     return SuDoKu__unique_sol_aux(self, ws);
 }
@@ -655,6 +651,8 @@ static PyObject*
 SuDoKu_resolve(SuDoKu *self)
 {
     int i;
+    /* workspace - actual PyObjects are not needed, except for the graph */
+    SuDoKu ws[81];
     PyObject *results = NULL;
 
     /* step 0 */
@@ -673,7 +671,7 @@ SuDoKu_resolve(SuDoKu *self)
     }
 
     /* step 2 */
-    if (SuDoKu__resolve_aux(self, &results) < 0)
+    if (SuDoKu__resolve_aux(self, ws, &results) < 0)
     {
         return NULL;
     }
