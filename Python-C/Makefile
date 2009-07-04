@@ -39,3 +39,7 @@ test: debug
 .PHONY: test-cover
 test-cover: debug
 	@nosetests --with-coverage --cover-package=sudoku.pysudoku --cover-erase test/test_sudoku.py
+
+.PHONY: test-memory
+test-memory: debug
+	@python test/test_memory.py
