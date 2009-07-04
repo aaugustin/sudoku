@@ -192,6 +192,7 @@ SuDoKu__resolve_aux(SuDoKu *self, PyObject **res)
 #ifdef DEBUG
     char output[82];
 #endif
+
     Py_XDECREF(*res);
     *res = PyList_New(0);
     if (*res == NULL)
@@ -217,10 +218,12 @@ SuDoKu__resolve_aux(SuDoKu *self, PyObject **res)
                 return -1;
             }
         }
-        if (PyList_Append(*res, SuDoKu_get2darray(self->v)) < 0)
+        sres = SuDoKu_get2darray(self->v);
+        if (PyList_Append(*res, sres) < 0)
         {
             return -1;
         }
+        Py_DECREF(sres);
         return 0;
     }
 
@@ -426,7 +429,7 @@ SuDoKu__graph_forks(PyObject *g)
 }
 
 static int
-SuDoKu__unique_sol_aux(SuDoKu *self)
+SuDoKu__unique_sol_aux(SuDoKu *self, SuDoKu *ws)
 {
     SuDoKu *t;
     int i, n, count, scount;
@@ -436,9 +439,8 @@ SuDoKu__unique_sol_aux(SuDoKu *self)
         return 1;
     }
 
+    t = &ws[self->n];
     i = SuDoKu__search_min(self);
-
-    t = (SuDoKu*)PyType_GenericNew(&SuDoKuType, NULL, NULL);
 
     count = 0;
     for (n = 1; n < 10; n++)
@@ -454,7 +456,7 @@ SuDoKu__unique_sol_aux(SuDoKu *self)
                 PyErr_Clear();
                 continue;
             }
-            scount = SuDoKu__unique_sol_aux(t);
+            scount = SuDoKu__unique_sol_aux(t, ws);
             if (scount < 0)
             {
                 return scount;
@@ -474,6 +476,7 @@ static int
 SuDoKu__unique_sol(SuDoKu *self)
 {
     int i;
+    SuDoKu ws[81]; /* workspace */
 
     SuDoKu__reset(self);
 
@@ -488,7 +491,11 @@ SuDoKu__unique_sol(SuDoKu *self)
         }
     }
 
-    return SuDoKu__unique_sol_aux(self);
+    printf("%d\n", &ws[0]);
+    printf("%d\n", &ws[1] - &ws[0]);
+    printf("%d\n", &ws[80] - &ws[0]);
+
+    return SuDoKu__unique_sol_aux(self, ws);
 }
 
 static int
@@ -703,6 +710,7 @@ SuDoKu_estimate(SuDoKu *self)
     return Py_BuildValue("di", log((double)l / 81.0) + 1.0, f);
 }
 
+/* returns a new reference */
 static PyObject*
 SuDoKu_generate(SuDoKu *self)
 {
@@ -1138,6 +1146,7 @@ SuDoKu_set2darray(int *a, PyObject *v)
     return 0;
 }
 
+/* returns a new reference */
 static PyObject *
 SuDoKu_getv(SuDoKu *self, void *closure)
 {
@@ -1150,6 +1159,7 @@ SuDoKu_setv(SuDoKu *self, PyObject *v, void *closure)
     return SuDoKu_set2darray(self->v, v);
 }
 
+/* returns a new reference */
 static PyObject *
 SuDoKu_geto(SuDoKu *self, void *closure)
 {

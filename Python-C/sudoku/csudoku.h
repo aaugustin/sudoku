@@ -166,7 +166,7 @@ static int
 SuDoKu__graph_forks(PyObject *g);
 
 static int
-SuDoKu__unique_sol_aux(SuDoKu *self);
+SuDoKu__unique_sol_aux(SuDoKu *self, SuDoKu *ws);
 
 static int
 SuDoKu__unique_sol(SuDoKu *self);
