@@ -25,22 +25,26 @@ repeats = [None] * repeat_count
 for problem in open(puzzles):
     # Disable GC during resolution to avoid artifacts
     gc.disable()
-    # Time one (Python) or ten (C) runs
     t0 = time.time()
     for i in repeats:
-        s = SuDoKu(problem)
+        s = SuDoKu(problem, estimate=False)
         s.resolve()
     t1 = time.time()
+    for i in repeats:
+        s = SuDoKu(problem, estimate=True)
+        s.resolve()
+    t2 = time.time()
     gc.enable()
     l, f = s.estimate()
-    stats.append(((t1 - t0) / repeat_count, l, f))
+    stats.append(((t1 - t0) / repeat_count, (t2 - t1) / repeat_count, l, f))
     del s
+    gc.collect()
 
-print "test\ttime\tlevel\tforks"
-print "-----------------------------"
-for i, (t, l, f) in enumerate(stats):
-    print "%d\t%.4f\t%.4f\t%d" % (i + 1, t, l, f)
-print "-----------------------------"
+print "test\ttime 1\ttime 2\tlevel\tforks"
+print "-------------------------------------"
+for i, (t1, t2, l, f) in enumerate(stats):
+    print "%d\t%.4f\t%.4f\t%.4f\t%d" % (i + 1, t1, t2, l, f)
+print "-------------------------------------"
 
 times = map(lambda x: x[0], stats)
 print "Problems solved:     %d" % len(times)
