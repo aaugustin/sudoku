@@ -11,7 +11,7 @@
 
 /******************************************************************************/
 
-/* if self->g is NULL, it will hold a new reference after execution */
+/* if self->g is NULL, it will hold a new reference to Py_None after execution */
 /* always returns 0 */
 static int
 SuDoKu__reset(SuDoKu *self)
@@ -41,7 +41,7 @@ SuDoKu__reset(SuDoKu *self)
     return 0;
 }
 
-/* if t->g is NULL, it will hold a new reference after execution */
+/* if t->g is NULL, it will hold a new reference to Py_None after execution */
 /* always returns 0 */
 static int
 SuDoKu__copy(SuDoKu *self, SuDoKu *t)
@@ -92,6 +92,8 @@ SuDoKu__mark(SuDoKu *self, int i, int n)
 #endif  
         if (self->e)
         {
+            if (self->g != Py_None)
+                printf("Bad decref @ 95\n");
             Py_DECREF(self->g);
             self->g = Py_BuildValue("ic", self->n, '-');
             if (self->g == NULL)
@@ -154,6 +156,8 @@ SuDoKu__eliminate(SuDoKu *self, int i, int n)
 #endif
             if (self->e)
             {
+                if (self->g != Py_None)
+                    printf("Bad decref @ 159\n");
                 Py_DECREF(self->g);
                 self->g = Py_BuildValue("ic", self->n, '-');
                 if (self->g == NULL)
@@ -205,7 +209,6 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
 #ifdef DEBUG
     char output[82];
 #endif
-    int rv = 0;
 
     *res = PyList_New(0);
     if (*res == NULL)
@@ -248,10 +251,11 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
             return -1;
         }
         Py_XDECREF(self->g);
-        self->g = Py_BuildValue("iO", self->n, sg);
-        Py_DECREF(sg); /* reference is stored */
+        /* reference to sg is stored without incrementing its refcounter */
+        self->g = Py_BuildValue("iN", self->n, sg);
         if (self->g == NULL)
         {
+            Py_DECREF(sg);
             return -1;
         }
     }
@@ -278,14 +282,13 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
                 PyErr_Clear();
                 if (self->e)
                 {
+                    /* saves a reference to t->g */
                     if (PyList_Append(sg, t->g) < 0)
                     {
                         Py_CLEAR(t->g);
                         return -1;
                     }
-                    Py_DECREF(t->g);
-                    Py_INCREF(Py_None);
-                    t->g = Py_None;
+                    Py_CLEAR(t->g);
                 }
                 continue;
             }
@@ -299,46 +302,47 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
             /* owned references t->g and sres must be decref'd on exit */
             if (SuDoKu__resolve_aux(t, ws, &sres) < 0)
             {
-                rv = -1;
-                goto exit;
+                Py_XDECREF(t->g);
+                Py_XDECREF(sres);
+                return -1;
             }
             if (!PyList_Check(sres))
             {
-                rv = -1;
-                goto exit;
+                Py_XDECREF(t->g);
+                Py_XDECREF(sres);
+                return -1;
             }
             for (x = 0; x < PyList_Size(sres); x++)
             {
                 grid = PyList_GetItem(sres, x); /* borrowed reference */
                 if (grid == NULL)
                 {
-                    rv = -1;
-                    goto exit;
+                    Py_XDECREF(t->g);
+                    Py_XDECREF(sres);
+                    return -1;
                 }
                 if (PyList_Append(*res, grid) < 0)
                 {
-                    rv = -1;
-                    goto exit;
+                    Py_XDECREF(t->g);
+                    Py_XDECREF(sres);
+                    return -1;
                 }
             }
             if (self->e)
             {
                 if (PyList_Append(sg, t->g) < 0)
                 {
-                    rv = -1;
-                    goto exit;
+                    Py_XDECREF(t->g);
+                    Py_XDECREF(sres);
+                    return -1;
                 }
+                Py_CLEAR(t->g);
             }
         }
     }
 
-exit:
-    if (self->e)
-    {
-        Py_DECREF(t->g);
-    }
     Py_XDECREF(sres);
-    return rv;
+    return 0;
 }
 
 #ifdef DEBUG
