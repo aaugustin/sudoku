@@ -65,7 +65,7 @@ def main():
         print error
         print
         p.print_help()
-        sys.exit(1)
+        sys.exit(2)
 
     # Create a SuDoKu object
     if hasattr(options, 'debug'):
