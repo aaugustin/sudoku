@@ -11,6 +11,8 @@
 
 /******************************************************************************/
 
+/* if self->g is NULL, it will hold a new reference after execution */
+/* always returns 0 */
 static int
 SuDoKu__reset(SuDoKu *self)
 {
@@ -31,7 +33,7 @@ SuDoKu__reset(SuDoKu *self)
     /* statistics */
     if (self->e)
     {
-        Py_XDECREF(self->g);
+        Py_XDECREF(self->g); /* the deallocation function is safe */
         Py_INCREF(Py_None);
         self->g = Py_None;
     }
@@ -39,6 +41,8 @@ SuDoKu__reset(SuDoKu *self)
     return 0;
 }
 
+/* if t->g is NULL, it will hold a new reference after execution */
+/* always returns 0 */
 static int
 SuDoKu__copy(SuDoKu *self, SuDoKu *t)
 {
@@ -54,7 +58,7 @@ SuDoKu__copy(SuDoKu *self, SuDoKu *t)
     /* self->g is not copied; that does not matter for the algorithm */
     if (self->e)
     {
-        Py_XDECREF(t->g);
+        Py_XDECREF(t->g); /* the deallocation function is safe */
         Py_INCREF(Py_None);
         t->g = Py_None;
     }
@@ -66,6 +70,8 @@ SuDoKu__copy(SuDoKu *self, SuDoKu *t)
     return 0;
 }
 
+/* returns -2 if a Contradiction exception is raised */
+/* self->g must not be NULL if self->e */
 static int
 SuDoKu__mark(SuDoKu *self, int i, int n)
 {
@@ -129,6 +135,8 @@ SuDoKu__mark(SuDoKu *self, int i, int n)
     return 0;
 }
 
+/* returns -2 if a Contradiction exception is raised */
+/* self->g must not be NULL if self->e */
 static int
 SuDoKu__eliminate(SuDoKu *self, int i, int n)
 {
@@ -165,6 +173,7 @@ SuDoKu__eliminate(SuDoKu *self, int i, int n)
     return 0;
 }
 
+/* returns -1 if the grid is complete, a cell number otherwise */
 static int
 SuDoKu__search_min(SuDoKu *self)
 {
@@ -183,7 +192,10 @@ SuDoKu__search_min(SuDoKu *self)
     return im;
 }
 
-/* caller will receive ownership of a new reference to *res */
+/* caller will receive ownership of a new reference to self->g
+   and to *res; existing references will be discarded */
+/* self->g may be NULL */
+/* *res must not be NULL */
 static int
 SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
 {
@@ -195,7 +207,6 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
 #endif
     int rv = 0;
 
-    /* *res is always NULL in this implementation */
     *res = PyList_New(0);
     if (*res == NULL)
     {
@@ -213,7 +224,7 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
 #endif
         if (self->e)
         {
-            Py_DECREF(self->g);
+            Py_XDECREF(self->g);
             self->g = Py_BuildValue("ic", self->n, '+');
             if (self->g == NULL)
             {
@@ -236,7 +247,13 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
         {
             return -1;
         }
-        /* owned reference sg must be decref'd on exit if and only if self->e */
+        Py_XDECREF(self->g);
+        self->g = Py_BuildValue("iO", self->n, sg);
+        Py_DECREF(sg); /* reference is stored */
+        if (self->g == NULL)
+        {
+            return -1;
+        }
     }
 
     t = &ws[self->n];
@@ -252,12 +269,9 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
                 PySys_WriteStdout("Trying %d at (%d, %d), search depth = %d\n", n, i / 9, i % 9, self->n);
             }
 #endif
-            if (SuDoKu__copy(self, t) < 0)
-            {
-                rv = -1;
-                goto exit;
-            }
-            /* owned reference t->g must be decref'd on exit if and only if self->e */
+            /* will allocate an owned reference t->g if and only if self->e */
+            SuDoKu__copy(self, t); /* no error codes */
+            /* may reallocate t->g if and only if self->e */
             r = SuDoKu__mark(t, i, n);
             if (r == -2)
             {
@@ -266,23 +280,28 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
                 {
                     if (PyList_Append(sg, t->g) < 0)
                     {
-                        rv = -1;
-                        goto exit;
+                        Py_CLEAR(t->g);
+                        return -1;
                     }
+                    Py_DECREF(t->g);
+                    Py_INCREF(Py_None);
+                    t->g = Py_None;
                 }
                 continue;
             }
             else if (r < 0)
             {
-                rv = r;
-                goto exit;
+                /* this may happen if t->g could not be allocated */
+                Py_XDECREF(t->g);
+                return r;
             }
+
+            /* owned references t->g and sres must be decref'd on exit */
             if (SuDoKu__resolve_aux(t, ws, &sres) < 0)
             {
                 rv = -1;
                 goto exit;
             }
-            /* owned reference sres must be decref'd on exit */
             if (!PyList_Check(sres))
             {
                 rv = -1;
@@ -313,22 +332,10 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
         }
     }
 
-    if (self->e)
-    {
-        Py_XDECREF(self->g);
-        self->g = Py_BuildValue("iO", self->n, sg);
-        if (self->g == NULL)
-        {
-            rv = -1;
-            goto exit;
-        }
-    }
-
 exit:
     if (self->e)
     {
-        Py_DECREF(sg);
-        Py_XDECREF(t->g);
+        Py_DECREF(t->g);
     }
     Py_XDECREF(sres);
     return rv;
@@ -467,10 +474,7 @@ SuDoKu__unique_sol_aux(SuDoKu *self, SuDoKu *ws)
     {
         if ((self->p[i] >> (n - 1)) & 1)
         {
-            if (SuDoKu__copy(self, t) < 0)
-            {
-                return -1;
-            }
+            SuDoKu__copy(self, t); /* no error codes */
             if (SuDoKu__mark(t, i, n) == -2)
             {
                 PyErr_Clear();
@@ -678,9 +682,9 @@ SuDoKu_resolve(SuDoKu *self)
 
     /* step 0 */
     SuDoKu__reset(self);
-    /* make sure XDECREF on g is safe */
     if (self->e)
     {
+        /* make sure XDECREF is safe on ws[i].g */
         for (i = 0; i < 81; i++)
         {
             ws[i].g = NULL;
@@ -957,6 +961,7 @@ SuDoKu_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (self != NULL)
     {
         self->e = 1;
+        self->g = NULL;
 #ifdef DEBUG
         self->d = 0;
 #endif
