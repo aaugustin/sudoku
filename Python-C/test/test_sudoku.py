@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # Copyright (c) 2008-2009 Aymeric Augustin
 
-
 """Tests for the Python and C implementations of the SuDoKu class.
 
 This testing suite is designed to run the same tests on the Python and C
@@ -17,10 +16,14 @@ As a consequence, within a test suite, the SuDoKu class must always be
 refered to as self.module.SuDoKu.
 """
 
-
-import os.path, re, StringIO, sys, unittest
+import os.path
+import re
+import StringIO
+import sys
+import unittest
 sys.path[:0] = [os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))]
-import sudoku.csudoku, sudoku.pysudoku
+import sudoku.csudoku
+import sudoku.pysudoku
 
 
 sudokus = (
@@ -76,6 +79,7 @@ class ObjectProperties(object):
         s.d = False
         self.assertEqual(repr(s), 'sudoku.SuDoKu(problem="%s", estimate=False)' % problem)
         s.e = True
+
 
 class ResolutionAndEstimation(object):
 
@@ -155,8 +159,7 @@ class Input(object):
         altered = (self.problem[:20].replace('_', '-')
                  + self.problem[20:40].replace('_', ' ')
                  + self.problem[40:60].replace('_', '.')
-                 + self.problem[60:].replace('_', '0')
-                  )
+                 + self.problem[60:].replace('_', '0'))
         t = self.module.SuDoKu(altered)
         self.assertEqual(t.o, s.o)
 

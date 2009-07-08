@@ -20,5 +20,4 @@ setup(
     ext_modules=[Extension('sudoku.csudoku',
                            ['sudoku/csudoku.c'],
                            define_macros=define_macros)],
-    
 )

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # Copyright (c) 2008-2009 Aymeric Augustin
 
-
 """Command-line interface for the SuDoKu solver and generator.
 
 If the C version of the SuDoKu class is available, it will be used. Otherwise,
@@ -9,10 +8,10 @@ the pure Python version will be used. This can be determined at runtime by
 testing whether 'implementation' is set to 'C' or 'Python'.
 """
 
-
 from __future__ import with_statement
 
-import optparse, sys
+import optparse
+import sys
 
 try:
     from csudoku import SuDoKu, Contradiction
@@ -60,8 +59,7 @@ def main():
                      help='enable verbose debug')
     (options, args) = p.parse_args()
 
-    # Code factorization
-    def exit_on_error(error):
+    def exit_on_error(error): # Code factorization
         print error
         print
         p.print_help()

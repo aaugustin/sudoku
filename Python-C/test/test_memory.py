@@ -5,13 +5,15 @@
 
 from __future__ import with_statement
 
-import os.path, sys
+import os.path
+import sys
 sys.path[:0] = [os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))]
 from sudoku import SuDoKu
 from guppy import hpy
 
 with open(os.path.join(os.path.dirname(__file__), 'hardest_sudoku.sdk')) as f:
     problem = f.read()
+
 
 def run_tests():
     hpy().heapu() # pre-heating
@@ -30,6 +32,7 @@ def run_tests():
     s.generate()
     print hpy().heapu()
     print '\n========    end     ========\n'
+
 
 if __name__ == '__main__':
     run_tests()

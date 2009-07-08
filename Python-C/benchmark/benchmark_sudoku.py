@@ -4,7 +4,10 @@
 """Benchmarking script for the Python and C implementations."""
 
 from __future__ import division
-import gc, os.path, sys, time
+import gc
+import os.path
+import sys
+import time
 
 BASEDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path[:0] = [BASEDIR]

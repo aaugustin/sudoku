@@ -3,7 +3,13 @@
 
 """Comparative tests of the Python and C implementations."""
 
-import difflib, glob, os, os.path, subprocess, sys, time
+import difflib
+import glob
+import os
+import os.path
+import subprocess
+import sys
+import time
 
 BASEDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 SDKFILE = os.path.join(BASEDIR, 'test', 'test2.sdk')
@@ -38,6 +44,7 @@ POPENOPTIONS = {
     'env': {'PYTHONPATH': BASEDIR},
 }
 
+
 def select_implementation(implementation):
     dst = os.path.join(BASEDIR, 'sudoku', 'csudoku.so')
     if implementation == 'Python':
@@ -47,7 +54,8 @@ def select_implementation(implementation):
         elif not os.path.exists(dst):
             return
         else:
-            raise OSError('compiled module csudoku.so exists and is not a symlink')
+            raise OSError('compiled module csudoku.so exists '
+                          'and is not a symlink')
     elif implementation == 'C':
         src = os.path.join(BASEDIR, 'build', 'lib.*', 'sudoku', 'csudoku.so')
         gsrc = glob.glob(src)
@@ -60,6 +68,7 @@ def select_implementation(implementation):
             raise EnvironmentError('compiled module csudoku.so not unique')
     else:
         raise ValueError('available implementations are Python and C')
+
 
 def run_tests():
 
@@ -122,6 +131,7 @@ def run_tests():
         print "FAILED (failures=%d)" % len(failures)
     else:
         print "OK"
+
 
 if __name__ == '__main__':
     run_tests()

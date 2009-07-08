@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 # Copyright (c) 2008-2009 Aymeric Augustin
 
-
 """Web server to demonstrate the SuDoKu generator."""
 
-
-import BaseHTTPServer, os.path, sys, time
+import BaseHTTPServer
+import os.path
+import sys
+import time
 BASEDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path[:0] = [BASEDIR]
 from sudoku import SuDoKu
+
 
 SERVER_ADDRESS = ('', 55729) # the port number actually means something
 TEMPLATE = """<?xml version="1.0"?>
@@ -16,16 +18,21 @@ TEMPLATE = """<?xml version="1.0"?>
                       "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
+  <meta http-equiv="Content-Type"
+        content="application/xhtml+xml; charset=utf-8" />
   <title>SuDoKu solver and generator</title>
   <style type="text/css"><!--
 .grid       { width: 50%%; float: left; }
-.sudoku     { margin: 1em auto; border: 2px solid black; border-collapse: collapse; }
-.sudoku td  { width: 1.5em; height: 1.5em; border: 1px solid black; font-size: 1.25em; 
+.sudoku     { margin: 1em auto; border: 2px solid black;
+              border-collapse: collapse; }
+.sudoku td  { width: 1.5em; height: 1.5em;
+              border: 1px solid black; font-size: 1.25em;
               text-align: center; vertical-align: middle; }
 .time       { text-align: center; }
-.difficulty { margin: 2em; clear: left; text-align: center; font-weight: bold; }
-.copyright  { border-top: 1px solid gray; padding: 0.5em; font-size: 0.825em; }
+.difficulty { margin: 2em; clear: left;
+              text-align: center; font-weight: bold; }
+.copyright  { border-top: 1px solid gray; padding: 0.5em;
+              font-size: 0.825em; }
   --></style>
   </head>
 <body>
@@ -42,6 +49,7 @@ TEMPLATE = """<?xml version="1.0"?>
 </body>
 </html>
 """
+
 
 class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
 

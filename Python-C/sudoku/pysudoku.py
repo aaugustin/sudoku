@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # Copyright (c) 2008-2009 Aymeric Augustin
 
-
 """SuDoKu generator and solver (pure Python implementation)."""
-
 
 from __future__ import division, with_statement
 
-import copy, math, random, sys
+import copy
+import math
+import random
+import sys
 from optparse import OptionParser
 
 
@@ -331,15 +332,15 @@ class SuDoKu(object):
             elif c in '_- .0':
                 pass
             else:
-                raise ValueError, 'Invalid caracter: %s.' % c
+                raise ValueError('Invalid caracter: %s.' % c)
             if j < 8:
                 j = j + 1
             else:
                 i, j = i +1, 0
         if 9 * i + j < 81:
-            raise ValueError, 'Bad input: not enough data.'
+            raise ValueError('Bad input: not enough data.')
         if 9 * i + j > 81:
-            raise ValueError, 'Bad input: too much data.'
+            raise ValueError('Bad input: too much data.')
 
     # Output functions
     #-----------------
@@ -357,7 +358,7 @@ class SuDoKu(object):
         """
         if format in ('console', 'html', 'string'):
             return getattr(self, '_to_' + format)(values or self.o)
-        raise ValueError, 'Invalid format: %s.' % format
+        raise ValueError('Invalid format: %s.' % format)
 
     def _to_console(self, v):
         cells = [[str(c) for c in r] for r in v]
