@@ -8,8 +8,6 @@ from __future__ import division, with_statement
 import copy
 import math
 import random
-import sys
-from optparse import OptionParser
 
 
 class Contradiction(Exception):
