@@ -23,7 +23,21 @@ class _MultipleSolutionsFound(Exception):
 class SuDoKu(object):
 
     # Precompute relation map
-    relations = [[[(k, l) for k in range(9) for l in range(9) if (k == i or l == j or (k // 3 == i // 3 and l // 3 == j // 3)) and not (k == i and l == j)] for j in range(9)] for i in range(9)]
+
+    def _related(i, j, k, l):
+        if k == i and l == j:
+            return False
+        if k == i:
+            return True
+        if l == j:
+            return True
+        if k // 3 == i // 3 and l // 3 == j // 3:
+            return True
+        return False
+
+    relations = [[[(k, l) for k in range(9) for l in range(9)
+                          if _related(i, j, k, l)]
+                  for j in range(9)] for i in range(9)]
 
     def __init__(self, problem=None, estimate=True, debug=False):
         """Initialize a SuDoKu object.
@@ -114,7 +128,8 @@ class SuDoKu(object):
             return
         # Check that the value is possible
         if self.p[i][j].count(n) == 0:
-            self.debug('    Attempt to assign %d at (%d, %d) which is forbidden' % (n, i, j))
+            self.debug('    Attempt to assign %d at (%d, %d)'
+                       ' which is forbidden' % (n, i, j))
             if self.e:
                 self.g = (self.n, '-')
             raise Contradiction
@@ -144,12 +159,13 @@ class SuDoKu(object):
 
         # If there's no possible value, we are on a wrong branch
         if len(self.p[i][j]) == 0:
-            self.debug('    Impossibility at (%d, %d), search depth = %d' % (i, j, self.n))
+            self.debug('    Impossibility at (%d, %d),'
+                       ' search depth = %d' % (i, j, self.n))
             if self.e:
                 self.g = (self.n, '-')
             raise Contradiction
 
-        # If there's one possible value, add it to the queue for further marking
+        # If there's one possible value, add it to the queue for marking
         elif len(self.p[i][j]) == 1:
             self.q.append((i, j, self.p[i][j][0]))
 
@@ -166,7 +182,8 @@ class SuDoKu(object):
     def _resolve_aux(self):
         # If the grid is complete, there is a unique solution
         if self.n == 81:
-            self.debug('    Found a solution: %s' % self.to_string(values=self.v))
+            self.debug('    Found a solution:'
+                       ' %s' % self.to_string(values=self.v))
             if self.e:
                 self.g = (self.n, '+')
             return [self.v]
@@ -177,7 +194,8 @@ class SuDoKu(object):
         if self.e:
             self.g = (self.n, [])
         for n in self.p[i][j]:
-            self.debug('Trying %d at (%d, %d), search depth = %d' % (n, i, j, self.n))
+            self.debug('Trying %d at (%d, %d),'
+                       ' search depth = %d' % (n, i, j, self.n))
             t = self._copy()
             try:
                 t._mark(i, j, n)

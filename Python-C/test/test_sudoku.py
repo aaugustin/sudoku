@@ -48,7 +48,7 @@ class CModule(object):
     module = sudoku.csudoku
 
 
-class ObjectProperties(object):
+class Properties(object):
 
     def testStr(self):
         problem = sudokus[0][0]
@@ -60,28 +60,29 @@ class ObjectProperties(object):
         self.assertEqual(str(s), problem)
 
     def testRepr(self):
-        problem = sudokus[0][0]
+        c = 'sudoku.SuDoKu'
+        p = sudokus[0][0]
         s = self.module.SuDoKu()
-        self.assertEqual(repr(s), 'sudoku.SuDoKu()')
+        self.assertEqual(repr(s), '%s()' % c)
         s.d = True
-        self.assertEqual(repr(s), 'sudoku.SuDoKu(debug=True)')
+        self.assertEqual(repr(s), '%s(debug=True)' % c)
         s.e = False
-        self.assertEqual(repr(s), 'sudoku.SuDoKu(estimate=False, debug=True)')
+        self.assertEqual(repr(s), '%s(estimate=False, debug=True)' % c)
         s.d = False
-        self.assertEqual(repr(s), 'sudoku.SuDoKu(estimate=False)')
+        self.assertEqual(repr(s), '%s(estimate=False)' % c)
         s.e = True
-        s.from_string(problem)
-        self.assertEqual(repr(s), 'sudoku.SuDoKu(problem="%s")' % problem)
+        s.from_string(p)
+        self.assertEqual(repr(s), '%s(problem="%s")' % (c, p))
         s.d = True
-        self.assertEqual(repr(s), 'sudoku.SuDoKu(problem="%s", debug=True)' % problem)
+        self.assertEqual(repr(s), '%s(problem="%s", debug=True)' % (c, p))
         s.e = False
-        self.assertEqual(repr(s), 'sudoku.SuDoKu(problem="%s", estimate=False, debug=True)' % problem)
+        self.assertEqual(repr(s), '%s(problem="%s", estimate=False, debug=True)' % (c, p))
         s.d = False
-        self.assertEqual(repr(s), 'sudoku.SuDoKu(problem="%s", estimate=False)' % problem)
+        self.assertEqual(repr(s), '%s(problem="%s", estimate=False)' % (c, p))
         s.e = True
 
 
-class ResolutionAndEstimation(object):
+class ResAndEst(object):
 
     def testResolve(self):
         forks = 0
@@ -221,19 +222,19 @@ class Output(object):
         self.assertEqual(output, self.solution)
 
 
-class TestPyObjectProperties(PyModule, ObjectProperties, unittest.TestCase):
+class TestPyProperties(PyModule, Properties, unittest.TestCase):
     pass
 
 
-class TestCObjectProperties(CModule, ObjectProperties, unittest.TestCase):
+class TestCProperties(CModule, Properties, unittest.TestCase):
     pass
 
 
-class TestPyResolutionAndEstimation(PyModule, ResolutionAndEstimation, unittest.TestCase):
+class TestPyResAndEst(PyModule, ResAndEst, unittest.TestCase):
     pass
 
 
-class TestCResolutionAndEstimation(CModule, ResolutionAndEstimation, unittest.TestCase):
+class TestCResAndEst(CModule, ResAndEst, unittest.TestCase):
     pass
 
 
