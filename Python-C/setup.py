@@ -9,12 +9,16 @@ if '--debug' in sys.argv:
     define_macros.append(('DEBUG', None))
 
 setup(
-    name='csudoku',
+    name='sudoku',
     version='2.0',
     author='Aymeric Augustin',
     author_email='aymeric.augustin@m4x.org',
     url='http://myks.org/',
+    license='Proprietary',
     description='SuDoKu generator and solver',
+    long_description='This program is a command-line utility to resolve'
+                     ' and generate SuDoKu grids.',
+    platforms='All',
     scripts=['bin/sudoku'],
     py_modules=['sudoku.pysudoku'],
     ext_modules=[Extension('sudoku.csudoku',
