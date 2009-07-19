@@ -29,7 +29,7 @@ clean:
 .PHONY: demo
 demo: build
 	@which -s open && { sleep 1; open http://localhost:55729; } &
-	@python test/webserve.py
+	@python demo/webserve.py
 
 .PHONY: test
 test: debug
