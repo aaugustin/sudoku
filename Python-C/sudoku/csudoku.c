@@ -319,13 +319,13 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
                 Py_XDECREF(sres);
                 return -1;
             }
+            Py_CLEAR(sres);
 
             if (self->e)
             {
                 if (PyList_Append(sg, t->g) < 0)
                 {
                     Py_XDECREF(t->g);
-                    Py_XDECREF(sres);
                     return -1;
                 }
                 Py_CLEAR(t->g);
@@ -333,7 +333,6 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
         }
     }
 
-    Py_XDECREF(sres);
     return 0;
 }
 
