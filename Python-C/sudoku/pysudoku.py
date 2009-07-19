@@ -3,7 +3,7 @@
 
 """SuDoKu generator and solver (pure Python implementation)."""
 
-from __future__ import division, with_statement
+from __future__ import division
 
 import copy
 import math

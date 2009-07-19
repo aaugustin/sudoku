@@ -92,8 +92,6 @@ SuDoKu__mark(SuDoKu *self, int i, int n)
 #endif  
         if (self->e)
         {
-            if (self->g != Py_None)
-                printf("Bad decref @ 95\n");
             Py_DECREF(self->g);
             self->g = Py_BuildValue("ic", self->n, '-');
             if (self->g == NULL)
@@ -156,8 +154,6 @@ SuDoKu__eliminate(SuDoKu *self, int i, int n)
 #endif
             if (self->e)
             {
-                if (self->g != Py_None)
-                    printf("Bad decref @ 159\n");
                 Py_DECREF(self->g);
                 self->g = Py_BuildValue("ic", self->n, '-');
                 if (self->g == NULL)
@@ -199,13 +195,13 @@ SuDoKu__search_min(SuDoKu *self)
 /* caller will receive ownership of a new reference to self->g
    and to *res; existing references will be discarded */
 /* self->g may be NULL */
-/* *res must not be NULL */
+/* *res must be NULL */
 static int
 SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
 {
-    PyObject *grid, *sg = NULL, *sres = NULL;
+    PyObject *sg = NULL, *sres = NULL, *tmp = NULL;
     SuDoKu *t;
-    int i, n, r, x;
+    int i, n, r;
 #ifdef DEBUG
     char output[82];
 #endif
@@ -237,6 +233,7 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
         sres = SuDoKu_get2darray(self->v);
         if (PyList_Append(*res, sres) < 0)
         {
+            Py_DECREF(sres);
             return -1;
         }
         Py_DECREF(sres);
@@ -312,22 +309,17 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
                 Py_XDECREF(sres);
                 return -1;
             }
-            for (x = 0; x < PyList_Size(sres); x++)
+
+            tmp = *res;
+            *res = PySequence_Concat(*res, sres);
+            Py_DECREF(tmp);
+            if (*res == NULL)
             {
-                grid = PyList_GetItem(sres, x); /* borrowed reference */
-                if (grid == NULL)
-                {
-                    Py_XDECREF(t->g);
-                    Py_XDECREF(sres);
-                    return -1;
-                }
-                if (PyList_Append(*res, grid) < 0)
-                {
-                    Py_XDECREF(t->g);
-                    Py_XDECREF(sres);
-                    return -1;
-                }
+                Py_XDECREF(t->g);
+                Py_XDECREF(sres);
+                return -1;
             }
+
             if (self->e)
             {
                 if (PyList_Append(sg, t->g) < 0)
@@ -745,7 +737,6 @@ SuDoKu_estimate(SuDoKu *self)
     return Py_BuildValue("di", log((double)l / 81.0) + 1.0, f);
 }
 
-/* returns a new reference */
 static PyObject*
 SuDoKu_generate(SuDoKu *self)
 {
