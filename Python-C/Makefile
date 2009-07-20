@@ -23,7 +23,7 @@ clean:
 	rm -rf build
 	rm -rf dist
 	rm -f MANIFEST
-	rm -f sudoku/*.pyc
+	rm -f */*.pyc
 	rm -f sudoku/csudoku.so
 
 .PHONY: demo
