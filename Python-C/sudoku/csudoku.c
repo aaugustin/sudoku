@@ -487,7 +487,7 @@ SuDoKu__unique_sol_aux(SuDoKu *self, SuDoKu *ws)
             count += scount;
             if (count > 1)
             {
-                // -2 means that several solutions were found
+                /* -2 means that several solutions were found */
                 return -2;
             }
         }
@@ -583,9 +583,18 @@ SuDoKu__to_console(SuDoKu *self, const int *v, char *s)
         for (j = 0; j < 9; j++)
         {
             k = v[9 * i + j];
-            if (k >= 1 && k <= 9)
+            if (k == 0)
+            {
+                /* nothing to do */
+            }
+            else if (k >= 1 && k <= 9)
             {
                 p1[4 * j + 2] = (char)(k + (int)'0');
+            }
+            else
+            {
+                PyErr_SetString(PyExc_ValueError, "Invalid value in grid.");
+                return -1;
             }
         }
         p1 = stpcpy(p2, sep);
@@ -612,11 +621,16 @@ SuDoKu__to_html(SuDoKu *self, const int *v, char *s)
             {
                 p = stpcpy(p, "&nbsp;");
             }
-            if (k >= 1 && k <= 9)
+            else if (k >= 1 && k <= 9)
             {
                 p[0] = (char)(k + (int)'0');
                 p[1] = '\0';
                 p = &p[1];
+            }
+            else
+            {
+                PyErr_SetString(PyExc_ValueError, "Invalid value in grid.");
+                return -1;
             }
             p = stpcpy(p, "</td>");
         }
