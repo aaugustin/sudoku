@@ -70,6 +70,7 @@ SuDoKu__copy(SuDoKu *self, SuDoKu *t)
     return 0;
 }
 
+/* returns -1 on errors */
 /* returns -2 if a Contradiction exception is raised */
 /* self->g must not be NULL if self->e */
 static int
@@ -135,6 +136,7 @@ SuDoKu__mark(SuDoKu *self, int i, int n)
     return 0;
 }
 
+/* returns -1 on errors */
 /* returns -2 if a Contradiction exception is raised */
 /* self->g must not be NULL if self->e */
 static int
@@ -173,7 +175,7 @@ SuDoKu__eliminate(SuDoKu *self, int i, int n)
     return 0;
 }
 
-/* returns -1 if the grid is complete, a cell number otherwise */
+/* returns -1 if the grid is complete, a non-negative cell number otherwise */
 static int
 SuDoKu__search_min(SuDoKu *self)
 {
@@ -192,10 +194,10 @@ SuDoKu__search_min(SuDoKu *self)
     return im;
 }
 
+/* returns -1 on errors */
 /* caller will receive ownership of a new reference to self->g
    and to *res; existing references will be discarded */
-/* self->g may be NULL */
-/* *res must be NULL */
+/* self->g may be NULL and *res must be NULL */
 static int
 SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
 {
@@ -303,8 +305,10 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
                 Py_XDECREF(sres);
                 return -1;
             }
-            if (!PyList_Check(sres))
+            if (!PyList_CheckExact(sres))
             {
+                PyErr_SetString(PyExc_SystemError,
+                    "expected a list in sres after SuDoKu__resolve_aux");
                 Py_XDECREF(t->g);
                 Py_XDECREF(sres);
                 return -1;
@@ -703,6 +707,12 @@ SuDoKu_resolve(SuDoKu *self)
     {
         return NULL;
     }
+    if (!PyList_CheckExact(results))
+    {
+        PyErr_SetString(PyExc_SystemError,
+            "expected a list in sres after SuDoKu__resolve_aux");
+        return NULL;
+    }
 
     return results;
 }
@@ -902,7 +912,10 @@ SuDoKu_to_string(SuDoKu *self, PyObject *args, PyObject *kwds)
     }
     else
     {
-        SuDoKu_set2darray(cvalues, values);
+        if (SuDoKu_set2darray(cvalues, values) < 0)
+        {
+            return NULL;
+        }
     }
 
     if (strcmp(format, "console") == 0)
@@ -1151,22 +1164,28 @@ SuDoKu_set2darray(int *a, PyObject *v)
     PyObject *r, *c; /* row, cell */
     int i, j;
 
-    if (v == NULL || !PyList_Check(v) || PyList_Size(v) != 9)
+    if (v == NULL || !PyList_CheckExact(v) || PyList_Size(v) != 9)
     {
+        PyErr_SetString(PyExc_ValueError,
+            "SuDoKu_set2darray expects a grid with 9 rows");
         return -1;
     }
     for (i = 0; i < 9; i++)
     {
         r = PyList_GetItem(v, i);
-        if (r == NULL || !PyList_Check(r) || PyList_Size(r) != 9)
+        if (r == NULL || !PyList_CheckExact(r) || PyList_Size(r) != 9)
         {
+            PyErr_SetString(PyExc_ValueError,
+                "SuDoKu_set2darray expect a grid with 9 columns");
             return -1;
         }
         for (j = 0; j < 9; j++)
         {
             c = PyList_GetItem(r, j);
-            if (c == NULL || !PyInt_Check(c))
+            if (c == NULL || !PyInt_CheckExact(c))
             {
+                PyErr_SetString(PyExc_ValueError,
+                    "SuDoKu_set2darray expect a grid of integers");
                 return -1;
             }
             a[9 * i + j] = (int)PyInt_AsLong(c);
