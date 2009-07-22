@@ -11,6 +11,7 @@ testing whether 'implementation' is set to 'C' or 'Python'.
 from __future__ import with_statement
 
 import optparse
+import os.path
 import sys
 
 try:
@@ -27,7 +28,8 @@ __all__ = ['SuDoKu', 'Contradiction']
 
 def main():
 
-    p = optparse.OptionParser(usage='usage: %prog [options] [problem]')
+    p = optparse.OptionParser(usage='usage: %s [options] [problem]'
+                                    % os.path.basename(sys.argv[0]))
 
     # Actions
     p.add_option('-r', '--resolve',
