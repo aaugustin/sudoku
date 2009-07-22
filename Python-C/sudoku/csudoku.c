@@ -366,7 +366,7 @@ SuDoKu__print_graph_aux(PyObject *g, char *p, int pl)
         return -1;
     }
 
-    if (PyList_Check(g1))
+    if (PyList_CheckExact(g1))
     {
         PyOS_snprintf(fmt, 15, "%%.%ds%%02d\n", pl);
         PySys_WriteStdout(fmt, p, g0);
@@ -411,7 +411,7 @@ SuDoKu__graph_len_aux(PyObject *g, int d)
     }
 
     l = g0 - d;
-    if (PyList_Check(g1))
+    if (PyList_CheckExact(g1))
     {
         for (i = 0; i < PyList_Size(g1); i++)
         {
@@ -439,7 +439,7 @@ SuDoKu__graph_forks(PyObject *g)
     }
 
     f = 0;
-    if (PyList_Check(g1))
+    if (PyList_CheckExact(g1))
     {
         for (i = 0; i < PyList_Size(g1); i++)
         {
