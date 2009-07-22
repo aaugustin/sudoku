@@ -16,22 +16,22 @@ SDKFILE = os.path.join(BASEDIR, 'test', 'test2.sdk')
 SDK = open(SDKFILE).read()
 
 TESTS = (
-    ([], None),
-    (['-h'], None),
+    (['sudoku', ], None),
+    (['sudoku', '-h'], None),
     # Resolution options
-    (['-r', SDK], None),
-    (['-r', '-d', SDK], None),
-    (['-r', '-e', SDK], None),
-    (['-r', '-e', '-d', SDK], None),
+    (['sudoku', '-r', SDK], None),
+    (['sudoku', '-r', '-d', SDK], None),
+    (['sudoku', '-r', '-e', SDK], None),
+    (['sudoku', '-r', '-e', '-d', SDK], None),
     # Input from stdin, argument or file
-    (['-s'], SDK),
-    (['-s', SDK], None),
-    (['-s', '-i', SDKFILE], None),
+    (['sudoku', '-s'], SDK),
+    (['sudoku', '-s', SDK], None),
+    (['sudoku', '-s', '-i', SDKFILE], None),
     # Outuput formats
-    (['-s'], SDK),
-    (['-s', '-f', 'console'], SDK),
-    (['-s', '-f', 'html'], SDK),
-    (['-s', '-f', 'string'], SDK),
+    (['sudoku', '-s'], SDK),
+    (['sudoku', '-s', '-f', 'console'], SDK),
+    (['sudoku', '-s', '-f', 'html'], SDK),
+    (['sudoku', '-s', '-f', 'string'], SDK),
 )
 
 POPENOPTIONS = {
