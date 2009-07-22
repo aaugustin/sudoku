@@ -1164,7 +1164,11 @@ SuDoKu_set2darray(int *a, PyObject *v)
     PyObject *r, *c; /* row, cell */
     int i, j;
 
-    if (v == NULL || !PyList_CheckExact(v) || PyList_Size(v) != 9)
+    if (v == NULL)
+    {
+        return -1;
+    }
+    else if (!PyList_CheckExact(v) || PyList_Size(v) != 9)
     {
         PyErr_SetString(PyExc_ValueError,
             "SuDoKu_set2darray expects a grid with 9 rows");
@@ -1173,19 +1177,27 @@ SuDoKu_set2darray(int *a, PyObject *v)
     for (i = 0; i < 9; i++)
     {
         r = PyList_GetItem(v, i);
-        if (r == NULL || !PyList_CheckExact(r) || PyList_Size(r) != 9)
+        if (r == NULL)
+        {
+            return -1;
+        }
+        else if (!PyList_CheckExact(r) || PyList_Size(r) != 9)
         {
             PyErr_SetString(PyExc_ValueError,
-                "SuDoKu_set2darray expect a grid with 9 columns");
+                "SuDoKu_set2darray expects a grid with 9 columns");
             return -1;
         }
         for (j = 0; j < 9; j++)
         {
             c = PyList_GetItem(r, j);
-            if (c == NULL || !PyInt_CheckExact(c))
+            if (c == NULL)
+            {
+                return -1;
+            }
+            else if (!PyInt_CheckExact(c))
             {
                 PyErr_SetString(PyExc_ValueError,
-                    "SuDoKu_set2darray expect a grid of integers");
+                    "SuDoKu_set2darray expects a grid of integers");
                 return -1;
             }
             a[9 * i + j] = (int)PyInt_AsLong(c);
