@@ -247,30 +247,42 @@ static int
 SuDoKu_seto(SuDoKu *self, PyObject *v, void *closure);
 
 static PyMemberDef SuDoKu_members[] = {
-    {"n", T_INT,       offsetof(SuDoKu, n), READONLY, ""},
-    {"e", T_BYTE,      offsetof(SuDoKu, e), 0, ""},
-    {"g", T_OBJECT_EX, offsetof(SuDoKu, g), 0, ""},
+    {"n", T_INT,       offsetof(SuDoKu, n), READONLY,
+     "Number of known values."},
+    {"e", T_BYTE,      offsetof(SuDoKu, e), 0,
+     "Estimate flag."},
+    {"g", T_OBJECT_EX, offsetof(SuDoKu, g), 0,
+     "Graph of resolution paths."},
 #ifdef DEBUG
-    {"d", T_BYTE,      offsetof(SuDoKu, d), 0, ""},
+    {"d", T_BYTE,      offsetof(SuDoKu, d), 0,
+     "Debug flag."},
 #endif
+    {NULL}
+};
+
+static PyGetSetDef SuDoKu_getseters[] = {
+    {"v", (getter)SuDoKu_getv, (setter)SuDoKu_setv,
+     "Computed values: 1..9 or 0 = undefined.", NULL},
+    {"o", (getter)SuDoKu_geto, (setter)SuDoKu_seto,
+     "Initial values: 1..9 or 0 = undefined.", NULL},
     {NULL}
 };
 
 static PyMethodDef SuDoKu_methods[] = {
 #ifdef DEBUG
-    {"debug",       (PyCFunction)SuDoKu_debug,          METH_VARARGS,   ""},
+    {"debug",       (PyCFunction)SuDoKu_debug,          METH_VARARGS,
+     "See sudoku.pysudoku.debug.__doc__."},
 #endif DEBUG
-    {"resolve",     (PyCFunction)SuDoKu_resolve,        METH_NOARGS,    ""},
-    {"estimate",    (PyCFunction)SuDoKu_estimate,       METH_NOARGS,    ""},
-    {"generate",    (PyCFunction)SuDoKu_generate,       METH_NOARGS,    ""},
-    {"from_string", (PyCFunction)SuDoKu_from_string,    METH_VARARGS,   ""},
-    {"to_string",   (PyCFunction)SuDoKu_to_string,      METH_KEYWORDS,  ""},
-    {NULL}
-};
-
-static PyGetSetDef SuDoKu_getseters[] = {
-    {"v", (getter)SuDoKu_getv, (setter)SuDoKu_setv, "", NULL},
-    {"o", (getter)SuDoKu_geto, (setter)SuDoKu_seto, "", NULL},
+    {"resolve",     (PyCFunction)SuDoKu_resolve,        METH_NOARGS,
+     "See sudoku.pysudoku.resolve.__doc__."},
+    {"estimate",    (PyCFunction)SuDoKu_estimate,       METH_NOARGS,
+     "See sudoku.pysudoku.estimate.__doc__."},
+    {"generate",    (PyCFunction)SuDoKu_generate,       METH_NOARGS,
+     "See sudoku.pysudoku.generate.__doc__."},
+    {"from_string", (PyCFunction)SuDoKu_from_string,    METH_VARARGS,
+     "See sudoku.pysudoku.from_string.__doc__."},
+    {"to_string",   (PyCFunction)SuDoKu_to_string,      METH_KEYWORDS,
+     "See sudoku.pysudoku.to_string.__doc__."},
     {NULL}
 };
 

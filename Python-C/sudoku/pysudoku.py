@@ -33,9 +33,10 @@ class SuDoKu(object):
             return True
         return False
 
-    relations = [[[(k, l) for k in range(9) for l in range(9)
-                          if _related(i, j, k, l)]
-                  for j in range(9)] for i in range(9)]
+    _relations = [[[(k, l) for k in range(9) for l in range(9)
+                           if _related(i, j, k, l)]
+                   for j in range(9)] for i in range(9)]
+    del i, j, k, l
 
     def __init__(self, problem=None, estimate=True, debug=False):
         """Initialize a SuDoKu object.
@@ -52,13 +53,17 @@ class SuDoKu(object):
         self.o = [[0 for j in range(9)] for i in range(9)]
         if problem is not None:
             self.from_string(problem)
+        # Estimate flag
         self.e = estimate
+        # Debug flag
         self.d = debug
 
     def __str__(self):
+        """x.__str__() <==> str(x)"""
         return self.to_string()
 
     def __repr__(self):
+        """x.__repr__() <==> repr(x)"""
         args = []
         s = self.to_string()
         if s != 81 * '_':
@@ -137,7 +142,7 @@ class SuDoKu(object):
         # Prevent further detection of a contradiction by _eliminate
         self.p[i][j] = []
         # Apply rules
-        for k, l in SuDoKu.relations[i][j]:
+        for k, l in SuDoKu._relations[i][j]:
             self._eliminate(k, l, n)
         # Apply recursively
         if len(self.q) > 0:
@@ -362,7 +367,7 @@ class SuDoKu(object):
     #-----------------
 
     def to_string(self, format='string', values=None):
-        """Format a grid in a string.
+        """Format a grid and return a string.
 
         Available formats are:
           - console: console representation, suitable for humans,
@@ -370,7 +375,7 @@ class SuDoKu(object):
           - html: export format, suitable for the web.
 
         If values is specified, this grid will be displayed. Otherwise,
-        the original grid of self will be used.
+        the original grid of this instance will be used.
         """
         if format in ('console', 'html', 'string'):
             return getattr(self, '_to_' + format)(values or self.o)
