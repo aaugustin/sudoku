@@ -7,6 +7,7 @@ import BaseHTTPServer
 import os.path
 import sys
 import time
+import webbrowser
 BASEDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path[:0] = [BASEDIR]
 from sudoku import SuDoKu
@@ -78,6 +79,8 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(html)
 
+    def log_message(self, *args):
+        pass
 
 class Server(BaseHTTPServer.HTTPServer):
 
@@ -92,4 +95,7 @@ class Server(BaseHTTPServer.HTTPServer):
 
 
 if __name__ == '__main__':
-    Server(SERVER_ADDRESS, Handler).run()
+    server = Server(SERVER_ADDRESS, Handler)
+    webbrowser.open('http://%s:%d/' % 
+                    (server.server_name, server.server_port))
+    server.run()
