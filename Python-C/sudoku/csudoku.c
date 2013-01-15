@@ -90,7 +90,7 @@ SuDoKu__mark(SuDoKu *self, int i, int n)
         {
             PySys_WriteStdout("    Attempt to assign %d at (%d, %d) which is forbidden\n", n, i / 9, i % 9);
         }
-#endif  
+#endif
         if (self->e)
         {
             Py_DECREF(self->g);
@@ -1122,7 +1122,7 @@ SuDoKu_traverse(SuDoKu *self, visitproc visit, void *arg)
     return 0;
 }
 
-static int 
+static int
 SuDoKu_clear(SuDoKu *self)
 {
     Py_CLEAR(self->g);
