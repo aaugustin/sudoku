@@ -22,7 +22,7 @@ TEMPLATE = """<?xml version="1.0"?>
   <meta http-equiv="Content-Type"
         content="application/xhtml+xml; charset=utf-8" />
   <title>SuDoKu solver and generator</title>
-  <style type="text/css"><!--
+  <style type="text/css">
 .grid       { width: 50%%; float: left; }
 .sudoku     { margin: 1em auto; border: 2px solid black;
               border-collapse: collapse; }
@@ -34,7 +34,7 @@ TEMPLATE = """<?xml version="1.0"?>
               text-align: center; font-weight: bold; }
 .copyright  { border-top: 1px solid gray; padding: 0.5em;
               font-size: 0.825em; }
-  --></style>
+  </style>
   </head>
 <body>
 <div class="grid">
@@ -96,6 +96,6 @@ class Server(BaseHTTPServer.HTTPServer):
 
 if __name__ == '__main__':
     server = Server(SERVER_ADDRESS, Handler)
-    webbrowser.open('http://%s:%d/' % 
+    webbrowser.open('http://%s:%d/' %
                     (server.server_name, server.server_port))
     server.run()
