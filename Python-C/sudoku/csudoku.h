@@ -1,7 +1,7 @@
 /* SuDoKu solving library
- * 
+ *
  * Improves the performance of the pure Python version
- * 
+ *
  * Copyright (c) 2008-2009 Aymeric Augustin
  */
 
@@ -39,7 +39,7 @@ print 'static int SuDoKu__relations[81][20] = {\n    {'                        \
         ])                                                                     \
         for i in range(9) for j in range(9)                                    \
     ])                                                                         \
-    + '}\n};'                                                                   
+    + '}\n};'
 */
 
 static int SuDoKu__relations[81][20] = {
@@ -222,7 +222,7 @@ SuDoKu_repr(SuDoKu *self);
 static int
 SuDoKu_traverse(SuDoKu *self, visitproc visit, void *arg);
 
-static int 
+static int
 SuDoKu_clear(SuDoKu *self);
 
 static void
@@ -272,7 +272,7 @@ static PyMethodDef SuDoKu_methods[] = {
 #ifdef DEBUG
     {"debug",       (PyCFunction)SuDoKu_debug,          METH_VARARGS,
      "See sudoku.pysudoku.debug.__doc__."},
-#endif DEBUG
+#endif
     {"resolve",     (PyCFunction)SuDoKu_resolve,        METH_NOARGS,
      "See sudoku.pysudoku.resolve.__doc__."},
     {"estimate",    (PyCFunction)SuDoKu_estimate,       METH_NOARGS,
