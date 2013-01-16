@@ -4,6 +4,7 @@
 """Web server to demonstrate the SuDoKu generator."""
 
 import BaseHTTPServer
+import datetime
 import os.path
 import sys
 import time
@@ -13,7 +14,8 @@ sys.path[:0] = [BASEDIR]
 from sudoku import SuDoKu
 
 
-SERVER_ADDRESS = ('', 55729) # the port number actually means something
+SERVER_ADDRESS = ('', 55729)      # the port number actually means something
+
 TEMPLATE = """<?xml version="1.0"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
                       "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -46,7 +48,7 @@ TEMPLATE = """<?xml version="1.0"?>
   <div class="time">Resolution: %(res_t).2fms</div>
 </div>
 <div class="difficulty">Difficulty: %(dif).2f - <a href="/">New grid</a></div>
-<div class="copyright">Copyright (c) 2008-2009 Aymeric Augustin</div>
+<div class="copyright">Copyright (c) 2008-%(year)d Aymeric Augustin</div>
 </body>
 </html>
 """
@@ -71,6 +73,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             'res': s.to_string('html', resolved),
             'res_t': (t2 - t1) * 1000,
             'dif': difficulty,
+            'year': datetime.date.today().year,
         }
         html = TEMPLATE % substitutions
         self.send_response(200)
