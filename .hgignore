@@ -1,0 +1,8 @@
+syntax: glob
+
+*/*.pyc
+.coverage
+build
+dist
+MANIFEST
+sudoku/csudoku.so
