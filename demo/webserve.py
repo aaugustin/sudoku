@@ -15,6 +15,8 @@ from sudoku import SuDoKu
 
 
 SERVER_ADDRESS = ('localhost', 55729)   # port number actually means something
+                                        # but I don't remember what! my guess:
+                                        # 22 4 85 -> 55 7 118 -> 55 7 29
 
 TEMPLATE = """<?xml version="1.0"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
