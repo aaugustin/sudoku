@@ -57,6 +57,7 @@ The following tests can be run:
     $ make test-cover   # Code coverage of tests on the Python implementation
     $ make test-memory  # Check for reference leaks in the C implementatino
 
+If the test fail, run `make clean` and retry.
 
 Programmer API
 --------------

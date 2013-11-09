@@ -14,7 +14,7 @@ sys.path[:0] = [BASEDIR]
 from sudoku import SuDoKu
 
 
-SERVER_ADDRESS = ('', 55729)      # the port number actually means something
+SERVER_ADDRESS = ('localhost', 55729)   # port number actually means something
 
 TEMPLATE = """<?xml version="1.0"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
@@ -99,6 +99,5 @@ class Server(BaseHTTPServer.HTTPServer):
 
 if __name__ == '__main__':
     server = Server(SERVER_ADDRESS, Handler)
-    webbrowser.open('http://%s:%d/' %
-                    (server.server_name, server.server_port))
+    webbrowser.open('http://%s:%d/' % SERVER_ADDRESS)
     server.run()
