@@ -1,6 +1,4 @@
-syntax: glob
-
-*/*.pyc
+*.pyc
 .coverage
 build
 dist
