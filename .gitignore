@@ -1,5 +1,6 @@
 *.pyc
 .coverage
+.tox
 build
 dist
 MANIFEST
