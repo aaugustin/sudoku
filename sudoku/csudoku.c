@@ -9,6 +9,20 @@
 #include "math.h"
 #include "strings.h"
 
+#if PY_MAJOR_VERSION >= 3
+#define _PyLong_AsLong PyLong_AsLong
+#define _PyLong_CheckExact PyLong_CheckExact
+#define _PyLong_FromLong PyLong_FromLong
+#define _PyUnicode_FromString PyUnicode_FromString
+#define _PyUnicode_AsUTF8Bytes(arg) PyBytes_AsString(PyUnicode_AsUTF8String(arg))
+#else
+#define _PyLong_AsLong PyInt_AsLong
+#define _PyLong_CheckExact PyInt_CheckExact
+#define _PyLong_FromLong PyInt_FromLong
+#define _PyUnicode_FromString PyString_FromString
+#define _PyUnicode_AsUTF8Bytes PyString_AsString
+#endif
+
 /******************************************************************************/
 
 /* if self->g is NULL, it will hold a new reference to Py_None after execution */
@@ -381,7 +395,7 @@ SuDoKu__print_graph_aux(PyObject *g, char *p, int pl)
     else
     {
         PyOS_snprintf(fmt, 15, "%%.%ds%%02d %%s\n", pl);
-        c = PyString_AsString(g1);
+        c = _PyUnicode_AsUTF8Bytes(g1);
         if (c == NULL)
         {
             return -1;
@@ -963,7 +977,7 @@ SuDoKu_to_string(SuDoKu *self, PyObject *args, PyObject *kwds)
     if (formatter(self, cvalues, coutput) >= 0)
     {
         /* can be NULL, will be returned after free-ing coutput */
-        output = PyString_FromString(coutput);
+        output = _PyUnicode_FromString(coutput);
     }
 
     free(coutput);
@@ -1040,7 +1054,7 @@ SuDoKu_str(SuDoKu *self)
     }
 
     /* can be NULL, will be returned after free-ing coutput */
-    output = PyString_FromString(coutput);
+    output = _PyUnicode_FromString(coutput);
     free(coutput);
     return output;
 }
@@ -1110,7 +1124,7 @@ SuDoKu_repr(SuDoKu *self)
 #endif
     p = stpcpy(p, ")");
     /* can be NULL, will be returned after free-ing coutput */
-    output = PyString_FromString(coutput);
+    output = _PyUnicode_FromString(coutput);
     free(coutput);
     return output;
 }
@@ -1133,7 +1147,7 @@ static void
 SuDoKu_dealloc(SuDoKu *self)
 {
     Py_CLEAR(self->g);
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 /* returns a new reference */
@@ -1158,7 +1172,7 @@ SuDoKu_get2darray(int *a)
         }
         for (j = 0; j < 9; j++)
         {
-            c = PyInt_FromLong(a[9 * i + j]);
+            c = _PyLong_FromLong((long)a[9 * i + j]);
             if (c == NULL)
             {
                 Py_DECREF(v);
@@ -1208,13 +1222,13 @@ SuDoKu_set2darray(int *a, PyObject *v)
             {
                 return -1;
             }
-            else if (!PyInt_CheckExact(c))
+            else if (!_PyLong_CheckExact(c))
             {
                 PyErr_SetString(PyExc_ValueError,
                     "SuDoKu_set2darray expects a grid of integers");
                 return -1;
             }
-            a[9 * i + j] = (int)PyInt_AsLong(c);
+            a[9 * i + j] = (int)_PyLong_AsLong(c);
         }
     }
     return 0;
@@ -1248,36 +1262,56 @@ SuDoKu_seto(SuDoKu *self, PyObject *v, void *closure)
 
 /******************************************************************************/
 
-PyMODINIT_FUNC
-initcsudoku(void)
+static PyObject *
+init_csudoku(void)
 {
     PyObject *d, *m;
 
-    if (PyType_Ready(&SuDoKuType) < 0) return;
+    if (PyType_Ready(&SuDoKuType) < 0) return NULL;
 
     /* create SuDoKu_Contradiction */
     d = Py_BuildValue("{ss}", "__doc__",
                               "Contradiction in input, no solution exists.");
-    if (d == NULL) return;
+    if (d == NULL) return NULL;
 
     SuDoKu_Contradiction = PyErr_NewException("sudoku.csudoku.Contradiction", NULL, d);
     Py_DECREF(d);
-    if (SuDoKu_Contradiction == NULL) return;
+    if (SuDoKu_Contradiction == NULL) return NULL;
 
     /* initialize module */
+#if PY_MAJOR_VERSION >= 3
+    m = PyModule_Create(&moduledef);
+#else
     m = Py_InitModule3("sudoku.csudoku", module_methods,
                        "SuDoKu generator and solver (C implementation).");
-    if (m == NULL) return;
+#endif
+    if (m == NULL) return NULL;
 
     /* insert a new reference to objects in the module dictionnary */
     Py_INCREF(&SuDoKuType);
     if (PyModule_AddObject(m, "SuDoKu", (PyObject *)&SuDoKuType) < 0)
     {
         Py_DECREF(&SuDoKuType);
+        return NULL;
     }
     Py_INCREF(SuDoKu_Contradiction);
     if (PyModule_AddObject(m, "Contradiction", SuDoKu_Contradiction) < 0)
     {
         Py_DECREF(SuDoKu_Contradiction);
+        return NULL;
     }
+
+    return m;
 }
+
+#if PY_MAJOR_VERSION >= 3
+PyMODINIT_FUNC PyInit_csudoku(void)
+{
+    return init_csudoku();
+}
+#else
+PyMODINIT_FUNC initcsudoku(void)
+{
+    init_csudoku();
+}
+#endif

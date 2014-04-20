@@ -281,15 +281,14 @@ static PyMethodDef SuDoKu_methods[] = {
      "See sudoku.pysudoku.generate.__doc__."},
     {"from_string", (PyCFunction)SuDoKu_from_string,    METH_VARARGS,
      "See sudoku.pysudoku.from_string.__doc__."},
-    {"to_string",   (PyCFunction)SuDoKu_to_string,      METH_KEYWORDS,
+    {"to_string",   (PyCFunction)SuDoKu_to_string,      METH_VARARGS | METH_KEYWORDS,
      "See sudoku.pysudoku.to_string.__doc__."},
     {NULL}
 };
 
 
 static PyTypeObject SuDoKuType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                              /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)  /*ob_size*/
     "sudoku.csudoku.SuDoKu",        /*tp_name*/
     sizeof(SuDoKu),                 /*tp_basicsize*/
     0,                              /*tp_itemsize*/
@@ -334,6 +333,22 @@ static PyTypeObject SuDoKuType = {
 static PyMethodDef module_methods[] = {
     {NULL}  /* Sentinel */
 };
+
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "sudoku.csudoku",    /* m_name */
+    "SuDoKu generator and solver (C implementation).",
+                         /* m_doc */
+    -1,                  /* m_size */
+    module_methods,      /* m_methods */
+    NULL,                /* m_reload */
+    NULL,                /* m_traverse */
+    NULL,                /* m_clear */
+    NULL,                /* m_free */
+};
+#endif
+
 
 #ifndef PyMODINIT_FUNC  /* declarations for DLL import/export */
 #define PyMODINIT_FUNC void
