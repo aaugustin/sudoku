@@ -11,14 +11,14 @@
 typedef struct {
     PyObject_HEAD
     /* definition */
-    int o[81];  /* 1..9 or 0 = undefined */
-    int v[81];  /* 1..9 or 0 = undefined */
+    unsigned char o[81];        /* 1..9 or 0 = undefined */
+    unsigned char v[81];        /* 1..9 or 0 = undefined */
     /* resolution */
-    int p[81];  /* 00000000 00000000 0000000x xxxxxxxxx */
-    int c[81];  /* number of x == 1 in p */
-    int q[81];
-    int q_i;    /* in = push position */
-    int q_o;    /* out = pop position */
+    unsigned short int p[81];   /*  0000000x xxxxxxxxx */
+    unsigned char c[81];        /* number of x == 1 in p */
+    unsigned char q[81];        /* queue of positions */
+    int q_i;                    /* in = push position */
+    int q_o;                    /* out = pop position */
     int n;
     /* statistics */
     PyObject *g;
@@ -137,10 +137,10 @@ static int
 SuDoKu__copy(SuDoKu *self, SuDoKu *t);
 
 static int
-SuDoKu__mark(SuDoKu *self, int i, int n);
+SuDoKu__mark(SuDoKu *self, int i, unsigned char n);
 
 static int
-SuDoKu__eliminate(SuDoKu *self, int i, int n);
+SuDoKu__eliminate(SuDoKu *self, int i, unsigned char n);
 
 static int
 SuDoKu__search_min(SuDoKu *self);
@@ -175,13 +175,13 @@ static int
 SuDoKu__from_string(SuDoKu *self, const char *s, const int l);
 
 static int
-SuDoKu__to_console(SuDoKu *self, const int *v, char *s);
+SuDoKu__to_console(SuDoKu *self, const unsigned char *v, char *s);
 
 static int
-SuDoKu__to_html(SuDoKu *self, const int *v, char *s);
+SuDoKu__to_html(SuDoKu *self, const unsigned char *v, char *s);
 
 static int
-SuDoKu__to_string(SuDoKu *self, const int *v, char *s);
+SuDoKu__to_string(SuDoKu *self, const unsigned char *v, char *s);
 
 /******************************************************************************/
 
@@ -229,10 +229,10 @@ static void
 SuDoKu_dealloc(SuDoKu *self);
 
 static PyObject *
-SuDoKu_get2darray(int *a);
+SuDoKu_get2darray(unsigned char *a);
 
 static int
-SuDoKu_set2darray(int *a, PyObject *v);
+SuDoKu_set2darray(unsigned char *a, PyObject *v);
 
 static PyObject *
 SuDoKu_getv(SuDoKu *self, void *closure);

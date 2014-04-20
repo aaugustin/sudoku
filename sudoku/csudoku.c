@@ -60,11 +60,11 @@ SuDoKu__reset(SuDoKu *self)
 static int
 SuDoKu__copy(SuDoKu *self, SuDoKu *t)
 {
-    memcpy(t->o, self->o, 81 * sizeof(int));
-    memcpy(t->v, self->v, 81 * sizeof(int));
-    memcpy(t->p, self->p, 81 * sizeof(int));
-    memcpy(t->c, self->c, 81 * sizeof(int));
-    memcpy(t->q, self->q, 81 * sizeof(int));
+    memcpy(t->o, self->o, 81 * sizeof(unsigned char));
+    memcpy(t->v, self->v, 81 * sizeof(unsigned char));
+    memcpy(t->p, self->p, 81 * sizeof(unsigned short int));
+    memcpy(t->c, self->c, 81 * sizeof(unsigned char));
+    memcpy(t->q, self->q, 81 * sizeof(unsigned char));
     t->q_i = self->q_i;
     t->q_o = self->q_o;
     t->n = self->n;
@@ -88,7 +88,7 @@ SuDoKu__copy(SuDoKu *self, SuDoKu *t)
 /* returns -2 if a Contradiction exception is raised */
 /* self->g must not be NULL if self->e */
 static int
-SuDoKu__mark(SuDoKu *self, int i, int n)
+SuDoKu__mark(SuDoKu *self, int i, unsigned char n)
 {
     int *rel, j, r;
 
@@ -136,11 +136,11 @@ SuDoKu__mark(SuDoKu *self, int i, int n)
 
     while (self->q_o < self->q_i)
     {
-        i = self->q[self->q_o];
+        i = (int)self->q[self->q_o];
         self->q_o += 1;
         /* there is only one non-zero bit if self->p[i] at this point,
            ffs or fls could be used indifferently */
-        n = ffs(self->p[i]);
+        n = (unsigned char)ffs(self->p[i]);
         r = SuDoKu__mark(self, i, n);
         if (r < 0)
         {
@@ -154,7 +154,7 @@ SuDoKu__mark(SuDoKu *self, int i, int n)
 /* returns -2 if a Contradiction exception is raised */
 /* self->g must not be NULL if self->e */
 static int
-SuDoKu__eliminate(SuDoKu *self, int i, int n)
+SuDoKu__eliminate(SuDoKu *self, int i, unsigned char n)
 {
     if ((self->p[i] >> (n - 1)) & 1)
     {
@@ -182,7 +182,7 @@ SuDoKu__eliminate(SuDoKu *self, int i, int n)
         }
         else if (self->c[i] == 1)
         {
-            self->q[self->q_i] = i;
+            self->q[self->q_i] = (unsigned char)i;
             self->q_i += 1;
         }
     }
@@ -193,7 +193,8 @@ SuDoKu__eliminate(SuDoKu *self, int i, int n)
 static int
 SuDoKu__search_min(SuDoKu *self)
 {
-    int i, im, cm;
+    int i;
+    unsigned char im, cm;
 
     im = -1;
     cm = 10;
@@ -205,7 +206,7 @@ SuDoKu__search_min(SuDoKu *self)
             cm = self->c[i];
         }
     }
-    return im;
+    return (int)im;
 }
 
 /* returns -1 on errors */
@@ -217,7 +218,8 @@ SuDoKu__resolve_aux(SuDoKu *self, SuDoKu *ws, PyObject **res)
 {
     PyObject *sg = NULL, *sres = NULL, *tmp = NULL;
     SuDoKu *t;
-    int i, n, r;
+    int i, r;
+    unsigned char n;
 #ifdef DEBUG
     char output[82];
 #endif
@@ -472,7 +474,8 @@ static int
 SuDoKu__unique_sol_aux(SuDoKu *self, SuDoKu *ws)
 {
     SuDoKu *t;
-    int i, n, count, scount;
+    int i, count, scount;
+    unsigned char n;
 
     if (self->n == 81)
     {
@@ -555,7 +558,7 @@ SuDoKu__from_string(SuDoKu *self, const char *s, const int l)
         }
         else if (c >= '1' && c <= '9')
         {
-            self->o[i] = (int)c - (int)'0';
+            self->o[i] = (unsigned char)c - (unsigned char)'0';
         }
         else if (c == '_' || c == '-' || c == ' ' || c == '.' || c == '0')
         {
@@ -583,7 +586,7 @@ SuDoKu__from_string(SuDoKu *self, const char *s, const int l)
 }
 
 static int
-SuDoKu__to_console(SuDoKu *self, const int *v, char *s)
+SuDoKu__to_console(SuDoKu *self, const unsigned char *v, char *s)
 {
     int i, j, k;
     char *sep = " --- --- --- --- --- --- --- --- --- \n";
@@ -603,7 +606,7 @@ SuDoKu__to_console(SuDoKu *self, const int *v, char *s)
             }
             else if (k >= 1 && k <= 9)
             {
-                p1[4 * j + 2] = (char)(k + (int)'0');
+                p1[4 * j + 2] = (char)(k + (unsigned char)'0');
             }
             else
             {
@@ -618,7 +621,7 @@ SuDoKu__to_console(SuDoKu *self, const int *v, char *s)
 }
 
 static int
-SuDoKu__to_html(SuDoKu *self, const int *v, char *s)
+SuDoKu__to_html(SuDoKu *self, const unsigned char *v, char *s)
 {
     int i, j, k;
     char *p;
@@ -637,7 +640,7 @@ SuDoKu__to_html(SuDoKu *self, const int *v, char *s)
             }
             else if (k >= 1 && k <= 9)
             {
-                p[0] = (char)(k + (int)'0');
+                p[0] = (char)(k + (unsigned char)'0');
                 p[1] = '\0';
                 p = &p[1];
             }
@@ -655,7 +658,7 @@ SuDoKu__to_html(SuDoKu *self, const int *v, char *s)
 }
 
 static int
-SuDoKu__to_string(SuDoKu *self, const int *v, char *s)
+SuDoKu__to_string(SuDoKu *self, const unsigned char *v, char *s)
 {
     int i;
 
@@ -667,7 +670,7 @@ SuDoKu__to_string(SuDoKu *self, const int *v, char *s)
         }
         else if (v[i] >= 1 && v[i] <= 9)
         {
-            s[i] = (char)(v[i] + (int)'0');
+            s[i] = (char)(v[i] + (unsigned char)'0');
         }
         else
         {
@@ -777,7 +780,8 @@ SuDoKu_estimate(SuDoKu *self)
 static PyObject*
 SuDoKu_generate(SuDoKu *self)
 {
-    int e, i, j, k, m, n, r, order[81];
+    int e, i, j, k, m, r, order[81];
+    unsigned char n;
 #ifdef DEBUG
     int count;
 #endif
@@ -815,13 +819,13 @@ SuDoKu_generate(SuDoKu *self)
             {
                 /* choose a random possibility at position order[i] */
                 j = self->p[order[i]];
-                m = (random() % self->c[order[i]]);
+                m = (random() % (int)self->c[order[i]]);
                 for (k = 0; k < m; k++)
                 {
                     /* set least significant bit to 0 */
                     j &= j - 1;
                 }
-                n = ffs(j);
+                n = (unsigned char)ffs(j);
                 if (SuDoKu__mark(self, order[i], n) == -2)
                 {
                     PyErr_Clear();
@@ -849,7 +853,7 @@ SuDoKu_generate(SuDoKu *self)
         PySys_WriteStdout("Minimizing problem...\n");
     }
 #endif
-    memcpy(self->o, self->v, 81 * sizeof(int));
+    memcpy(self->o, self->v, 81 * sizeof(unsigned char));
     /* shuffle order */
     for (i = 0; i < 81; i++)
     {
@@ -922,9 +926,9 @@ SuDoKu_to_string(SuDoKu *self, PyObject *args, PyObject *kwds)
     static char *kwlist[] = {"format", "values", NULL};
     const char *format = "string";
     PyObject *values = NULL;
-    int cvalues[81];
+    unsigned char cvalues[81];
     int coutlen;
-    static int (*formatter)(SuDoKu *self, const int *v, char *s);
+    static int (*formatter)(SuDoKu *self, const unsigned char *v, char *s);
     char err_msg[32];
     char *coutput = NULL;
     PyObject *output = NULL;
@@ -936,7 +940,7 @@ SuDoKu_to_string(SuDoKu *self, PyObject *args, PyObject *kwds)
 
     if (values == NULL)
     {
-        memcpy(cvalues, self->o, 81 * sizeof(int));
+        memcpy(cvalues, self->o, 81 * sizeof(unsigned char));
     }
     else
     {
@@ -1152,7 +1156,7 @@ SuDoKu_dealloc(SuDoKu *self)
 
 /* returns a new reference */
 static PyObject *
-SuDoKu_get2darray(int *a)
+SuDoKu_get2darray(unsigned char *a)
 {
     PyObject *v, *r, *c; /* values, row, cell */
     int i, j;
@@ -1187,7 +1191,7 @@ SuDoKu_get2darray(int *a)
 }
 
 static int
-SuDoKu_set2darray(int *a, PyObject *v)
+SuDoKu_set2darray(unsigned char *a, PyObject *v)
 {
     PyObject *r, *c; /* row, cell */
     int i, j;
@@ -1228,7 +1232,7 @@ SuDoKu_set2darray(int *a, PyObject *v)
                     "SuDoKu_set2darray expects a grid of integers");
                 return -1;
             }
-            a[9 * i + j] = (int)_PyLong_AsLong(c);
+            a[9 * i + j] = (unsigned char)_PyLong_AsLong(c);
         }
     }
     return 0;
