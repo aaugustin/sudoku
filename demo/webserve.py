@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (c) 2008-2009 Aymeric Augustin
+# Copyright (c) 2008-2014 Aymeric Augustin
 
 """Web server to demonstrate the SuDoKu generator."""
 

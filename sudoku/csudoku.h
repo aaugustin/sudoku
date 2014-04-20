@@ -2,7 +2,7 @@
  *
  * Improves the performance of the pure Python version
  *
- * Copyright (c) 2008-2009 Aymeric Augustin
+ * Copyright (c) 2008-2014 Aymeric Augustin
  */
 
 #include <Python.h>

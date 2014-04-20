@@ -1,7 +1,7 @@
 # Makefile for sudoku
-# Copyright (c) 2009 Aymeric Augustin
+# Copyright (c) 2009-2014 Aymeric Augustin
 
-# Avoid copying the resource forks when tar-ing on Mac OS X 10.5
+# Avoid copying the resource forks when tar-ing on Mac OS X
 export COPYFILE_DISABLE=true
 
 build: sudoku/csudoku.c sudoku/csudoku.h

@@ -71,4 +71,4 @@ SuDoKu class are documented in `sudoku/pysudoku.py`.
 Copyright
 ---------
 
-Copyright (c) 2008-2009 Aymeric Augustin. All rights reserved.
+Copyright (c) 2008-2014 Aymeric Augustin. All rights reserved.
