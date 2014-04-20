@@ -8,17 +8,15 @@ the pure Python version will be used. This can be determined at runtime by
 testing whether 'implementation' is set to 'C' or 'Python'.
 """
 
-from __future__ import with_statement
-
 import optparse
 import os.path
 import sys
 
 try:
-    from csudoku import SuDoKu, Contradiction
+    from .csudoku import SuDoKu, Contradiction
     implementation = 'C'
 except ImportError:
-    from pysudoku import SuDoKu, Contradiction
+    from .pysudoku import SuDoKu, Contradiction
     implementation = 'Python'
 
 
@@ -62,8 +60,8 @@ def main():
     (options, args) = p.parse_args()
 
     def exit_on_error(error): # Code factorization
-        print error
-        print
+        print(error)
+        print()
         p.print_help()
         sys.exit(2)
 
@@ -115,17 +113,17 @@ def main():
     # Execute actions
     if options.resolve:
         for grid in s.resolve():
-            print s.to_string(options.format, grid)
+            print(s.to_string(options.format, grid))
         if options.estimate:
-            print s.estimate()
+            print(s.estimate())
 
     if options.generate:
         for i in range(options.count or 1):
             grid = s.generate()
-            print s.to_string(options.format, grid)
+            print(s.to_string(options.format, grid))
             if options.estimate:
                 s.resolve()
-                print s.estimate()
+                print(s.estimate())
 
     if options.show:
-        print s.to_string(options.format)
+        print(s.to_string(options.format))

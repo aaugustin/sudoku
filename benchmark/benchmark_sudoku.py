@@ -19,7 +19,7 @@ elif len(sys.argv) == 2 and sys.argv[1] == 'Python':
     from sudoku.pysudoku import SuDoKu
     repeat_count = 1
 else:
-    print 'Usage: %s [C|Python]' % os.path.basename(sys.argv[0])
+    print('Usage: %s [C|Python]' % os.path.basename(sys.argv[0]))
     sys.exit(2)
 
 puzzles = os.path.join(BASEDIR, 'benchmark', '95_hard_puzzles')
@@ -43,13 +43,13 @@ for problem in open(puzzles):
     del s
     gc.collect()
 
-print "test\ttime 1\ttime 2\tlevel\tforks"
-print "-------------------------------------"
+print("test\ttime 1\ttime 2\tlevel\tforks")
+print("-------------------------------------")
 for i, (t1, t2, l, f) in enumerate(stats):
-    print "%d\t%.4f\t%.4f\t%.4f\t%d" % (i + 1, t1, t2, l, f)
-print "-------------------------------------"
+    print("%d\t%.4f\t%.4f\t%.4f\t%d" % (i + 1, t1, t2, l, f))
+print("-------------------------------------")
 
-times = map(lambda x: x[0], stats)
-print "Problems solved:     %d" % len(times)
-print "Total time:          %.3f" % sum(times)
-print "Problems / second:   %.3f" % (len(times) / sum(times))
+times = [x[0] for x in stats]
+print("Problems solved:     %d" % len(times))
+print("Total time:          %.3f" % sum(times))
+print("Problems / second:   %.3f" % (len(times) / sum(times)))

@@ -79,6 +79,8 @@ def run_tests():
     select_implementation('Python')
     for args, stdin in TESTS:
         p = subprocess.Popen(args, **POPENOPTIONS)
+        if stdin is not None and sys.version_info[0] >= 3:
+            stdin = memoryview(stdin.encode())
         py_results.append(p.communicate(stdin))
         sys.stdout.write('P')
         sys.stdout.flush()
@@ -89,6 +91,8 @@ def run_tests():
     select_implementation('C')
     for args, stdin in TESTS:
         p = subprocess.Popen(args, **POPENOPTIONS)
+        if stdin is not None and sys.version_info[0] >= 3:
+            stdin = memoryview(stdin.encode())
         c_results.append(p.communicate(stdin))
         sys.stdout.write('C')
         sys.stdout.flush()
@@ -110,27 +114,27 @@ def run_tests():
 
     # Print failures
     for i, py_result, c_result in failures:
-        print '=' * 70
-        print "FAIL: test: %d %s." % (i, TESTS[i])
-        print '-' * 70
+        print('=' * 70)
+        print("FAIL: test: %d %s." % (i, TESTS[i]))
+        print('-' * 70)
         for line in difflib.unified_diff(
             py_result[0].split('\n'), c_result[0].split('\n'),
             fromfile='Python stdout', tofile='C stdout', lineterm=''):
-            print line
+            print(line)
         for line in difflib.unified_diff(
             py_result[1].split('\n'), c_result[1].split('\n'),
             fromfile='Python stderr', tofile='C stderr', lineterm=''):
-            print line
-        print
+            print(line)
+        print()
 
     # Print summary
-    print '-' * 70
-    print 'Ran %d tests in %.3fs' % (len(TESTS), t)
-    print
+    print('-' * 70)
+    print('Ran %d tests in %.3fs' % (len(TESTS), t))
+    print()
     if failures:
-        print "FAILED (failures=%d)" % len(failures)
+        print("FAILED (failures=%d)" % len(failures))
     else:
-        print "OK"
+        print("OK")
 
 
 if __name__ == '__main__':

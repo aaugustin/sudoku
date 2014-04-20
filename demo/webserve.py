@@ -3,8 +3,12 @@
 
 """Web server to demonstrate the SuDoKu generator."""
 
-import BaseHTTPServer
+from __future__ import unicode_literals       # easier for a web application.
 import datetime
+try:
+  from http.server import BaseHTTPRequestHandler, HTTPServer
+except ImportError:
+  from BaseHttpServer import BaseHTTPRequestHandler, HTTPServer
 import os.path
 import sys
 import time
@@ -56,7 +60,7 @@ TEMPLATE = """<?xml version="1.0"?>
 """
 
 
-class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
+class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path != '/':
@@ -77,7 +81,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             'dif': difficulty,
             'year': datetime.date.today().year,
         }
-        html = TEMPLATE % substitutions
+        html = (TEMPLATE % substitutions).encode('utf-8')
         self.send_response(200)
         self.send_header('Content-Type', 'application/xhtml+xml')
         self.send_header('Content-Length', len(html))
@@ -87,7 +91,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
     def log_message(self, *args):
         pass
 
-class Server(BaseHTTPServer.HTTPServer):
+class Server(HTTPServer):
 
     def run(self):
         sys.stdout.write("Server is running at http://%s:%d/\n" %

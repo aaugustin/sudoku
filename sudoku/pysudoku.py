@@ -20,24 +20,6 @@ class _MultipleSolutionsFound(Exception):
 
 class SuDoKu(object):
 
-    # Precompute relation map
-
-    def _related(i, j, k, l):
-        if k == i and l == j:
-            return False
-        if k == i:
-            return True
-        if l == j:
-            return True
-        if k // 3 == i // 3 and l // 3 == j // 3:
-            return True
-        return False
-
-    _relations = [[[(k, l) for k in range(9) for l in range(9)
-                           if _related(i, j, k, l)]
-                   for j in range(9)] for i in range(9)]
-    del i, j, k, l
-
     def __init__(self, problem=None, estimate=True, debug=False):
         """Initialize a SuDoKu object.
 
@@ -77,14 +59,14 @@ class SuDoKu(object):
     def debug(self, msg):                                   #pragma: no cover
         """Print a debug message, only if the debug flag is set."""
         if self.d:
-            print msg
+            print(msg)
 
     def _reset(self):
         # Resolution
         # Computed values: 1..9 or 0 = undefined
         self.v = [[0 for j in range(9)] for i in range(9)]
         # Possible values at each position: subset of 1..9
-        self.p = [[range(1, 10) for j in range(9)] for i in range(9)]
+        self.p = [[list(range(1, 10)) for j in range(9)] for i in range(9)]
         # Queue of positions for which the value is known
         self.q = []
         # Number of known values
@@ -234,11 +216,11 @@ class SuDoKu(object):
         if g is None:
             g = self.g
         if isinstance(g[1], list):
-            print '%s%02d' % (p, g[0])
+            print('%s%02d' % (p, g[0]))
             for sg in g[1]:
                 self._print_graph(sg, '  ' + p)
         else:
-            print '%s%02d %s' % (p, g[0], g[1])
+            print('%s%02d %s' % (p, g[0], g[1]))
 
     def _graph_len(self, g=None, d=0):
         if g is None:
@@ -398,3 +380,20 @@ class SuDoKu(object):
         s =''.join([''.join([str(c) for c in r]) for r in v])
         s = s.replace('0', '_')
         return s
+
+# Precompute relation map
+
+def _related(i, j, k, l):
+    if k == i and l == j:
+        return False
+    if k == i:
+        return True
+    if l == j:
+        return True
+    if k // 3 == i // 3 and l // 3 == j // 3:
+        return True
+    return False
+
+SuDoKu._relations = [[[(k, l) for k in range(9) for l in range(9)
+                              if _related(i, j, k, l)]
+                     for j in range(9)] for i in range(9)]

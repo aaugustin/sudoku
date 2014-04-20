@@ -3,8 +3,6 @@
 
 """Memory debugging script for the C implementation."""
 
-from __future__ import with_statement
-
 import os.path
 import sys
 sys.path[:0] = [os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))]
@@ -17,21 +15,21 @@ with open(os.path.join(os.path.dirname(__file__), 'hardest_sudoku.sdk')) as f:
 
 def run_tests():
     hpy().heapu() # pre-heating
-    print '\n========   begin    ========\n'
-    print hpy().heapu()
-    print '\n========    init    ========\n'
+    print('\n========   begin    ========\n')
+    print(hpy().heapu())
+    print('\n========    init    ========\n')
     s = SuDoKu()
-    print hpy().heapu()
-    print '\n========    read    ========\n'
+    print(hpy().heapu())
+    print('\n========    read    ========\n')
     s.from_string(problem)
-    print hpy().heapu()
-    print '\n========  resolve   ========\n'
+    print(hpy().heapu())
+    print('\n========  resolve   ========\n')
     s.resolve()
-    print hpy().heapu()
-    print '\n========  generate  ========\n'
+    print(hpy().heapu())
+    print('\n========  generate  ========\n')
     s.generate()
-    print hpy().heapu()
-    print '\n========    end     ========\n'
+    print(hpy().heapu())
+    print('\n========    end     ========\n')
 
 
 if __name__ == '__main__':

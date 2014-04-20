@@ -18,7 +18,7 @@ refered to as self.module.SuDoKu.
 
 import os.path
 import re
-import StringIO
+import io
 import sys
 import unittest
 sys.path[:0] = [os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))]
@@ -114,7 +114,7 @@ class ResAndEst(object):
     def testDebugCanBeEnabled(self):
         problem, solution = sudokus[0]
         s = self.module.SuDoKu(problem, debug=True)
-        sys.stdout = StringIO.StringIO()
+        sys.stdout = io.StringIO() if sys.version_info[0] >= 3 else io.BytesIO()
         s.resolve()
         output = sys.stdout.getvalue()
         sys.stdout = sys.__stdout__
@@ -148,11 +148,11 @@ class Input(object):
     def testFromStringAcceptsLineBreaks(self):
         s = self.module.SuDoKu(self.problem)
         lines = [self.problem[i:i+9] for i in range(0, 81, 9)]
-        t = self.module.SuDoKu(''.join(map(lambda l: l + '\n', lines)))
+        t = self.module.SuDoKu(''.join([l + '\n' for l in lines]))
         self.assertEqual(t.o, s.o)
-        t = self.module.SuDoKu(''.join(map(lambda l: l + '\r\n', lines)))
+        t = self.module.SuDoKu(''.join([l + '\r\n' for l in lines]))
         self.assertEqual(t.o, s.o)
-        t = self.module.SuDoKu(''.join(map(lambda l: l + '\r', lines)))
+        t = self.module.SuDoKu(''.join([l + '\r' for l in lines]))
         self.assertEqual(t.o, s.o)
 
     def testFromStringAcceptsSeveralCharactersToMarkEmptyCells(self):
