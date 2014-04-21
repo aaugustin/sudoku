@@ -10,7 +10,7 @@ if '--debug' in sys.argv:
 
 setup(
     name='sudoku',
-    version='2.0',
+    version='3.0',
     author='Aymeric Augustin',
     author_email='aymeric.augustin@m4x.org',
     url='http://myks.org/',
