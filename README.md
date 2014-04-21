@@ -6,7 +6,9 @@ This program is a command-line utility to resolve and generate SuDoKu grids.
 Installation
 ------------
 
-Run as root:
+Python >= 2.6 or >= 3.2 is required.
+
+Run in a virtualenv (or as root for a systemwide install):
 
     $ make install
 
@@ -46,7 +48,6 @@ Run:
 
     $ make demo
 
-Then open in a browser: http://localhost:55729/
 
 Tests
 -----
