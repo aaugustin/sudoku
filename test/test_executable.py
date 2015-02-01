@@ -125,12 +125,12 @@ def run_tests():
             py_result[1].split('\n'), c_result[1].split('\n'),
             fromfile='Python stderr', tofile='C stderr', lineterm=''):
             print(line)
-        print()
+        print('')
 
     # Print summary
     print('-' * 70)
     print('Ran %d tests in %.3fs' % (len(TESTS), t))
-    print()
+    print('')
     if failures:
         print("FAILED (failures=%d)" % len(failures))
     else:

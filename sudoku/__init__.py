@@ -61,7 +61,7 @@ def main():
 
     def exit_on_error(error): # Code factorization
         print(error)
-        print()
+        print('')
         p.print_help()
         sys.exit(2)
 
