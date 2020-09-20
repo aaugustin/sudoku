@@ -11,9 +11,11 @@ import subprocess
 import sys
 import time
 
-BASEDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-SDKFILE = os.path.join(BASEDIR, 'test', 'test2.sdk')
-SDK = open(SDKFILE).read()
+BASEDIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+SDKFILE = os.path.join(BASEDIR, 'samples', 'test2.sdk')
+with open(SDKFILE) as f:
+    SDK = f.read()
+
 
 TESTS = (
     (['sudoku', ], None),

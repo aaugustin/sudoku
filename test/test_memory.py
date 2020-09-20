@@ -9,8 +9,10 @@ sys.path[:0] = [os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))]
 from sudoku import SuDoKu
 from guppy import hpy
 
-with open(os.path.join(os.path.dirname(__file__), 'hardest_sudoku.sdk')) as f:
-    problem = f.read()
+BASEDIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+SDKFILE = os.path.join(BASEDIR, 'samples', 'hard.sdk')
+with open(SDKFILE) as f:
+    SDK = f.read()
 
 
 def run_tests():
@@ -21,7 +23,7 @@ def run_tests():
     s = SuDoKu()
     print(hpy().heapu())
     print('\n========    read    ========\n')
-    s.from_string(problem)
+    s.from_string(SDK)
     print(hpy().heapu())
     print('\n========  resolve   ========\n')
     s.resolve()

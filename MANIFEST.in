@@ -3,4 +3,3 @@ include benchmark/95_hard_puzzles
 include demo/webserve.py
 include Makefile
 include sudoku/csudoku.h
-include test/*.sdk
