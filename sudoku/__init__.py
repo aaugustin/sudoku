@@ -113,14 +113,14 @@ def main():
     # Execute actions
     if options.resolve:
         for grid in s.resolve():
-            print(s.to_string(options.format, grid))
+            print(s.to_string(options.format, grid).strip())
         if options.estimate:
             print(s.estimate())
 
     if options.generate:
         for i in range(options.count or 1):
             grid = s.generate()
-            print(s.to_string(options.format, grid))
+            print(s.to_string(options.format, grid).strip())
             if options.estimate:
                 s.resolve()
                 print(s.estimate())

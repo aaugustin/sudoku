@@ -616,7 +616,6 @@ SuDoKu__to_console(SuDoKu *self, const unsigned char *v, char *s)
         }
         p1 = stpcpy(p2, sep);
     }
-    p1[-1] = '\0'; /* remove the last \n */
     return 0;
 }
 

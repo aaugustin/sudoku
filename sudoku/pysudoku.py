@@ -324,8 +324,9 @@ class SuDoKu(object):
     def from_string(self, s):
         """Parse a string to load a grid.
 
-        Non-empty cells are represented by a figure and empty cells by one of
-        '_', '-', ' ', '.', and '0'. Line breaks are ignored. """
+        Non-empty cells are represented by a digit and empty cells by one of
+        '_', '-', ' ', '.', and '0'. Line breaks are ignored.
+        """
         i = j = 0
         for c in s:
             if c in '123456789':
@@ -337,9 +338,10 @@ class SuDoKu(object):
             else:
                 raise ValueError('Invalid caracter: %s.' % c)
             if j < 8:
-                j = j + 1
+                j += 1
             else:
-                i, j = i +1, 0
+                i += 1
+                j = 0
         if 9 * i + j < 81:
             raise ValueError('Bad input: not enough data.')
         if 9 * i + j > 81:
@@ -352,9 +354,10 @@ class SuDoKu(object):
         """Format a grid and return a string.
 
         Available formats are:
-          - console: console representation, suitable for humans,
-          - string: compact representation, suitable for computers,
-          - html: export format, suitable for the web.
+
+        - console: console representation, suitable for humans,
+        - string: compact representation, suitable for computers,
+        - html: export format, suitable for the web.
 
         If values is specified, this grid will be displayed. Otherwise,
         the original grid of this instance will be used.
@@ -366,9 +369,8 @@ class SuDoKu(object):
     def _to_console(self, v):
         cells = [[str(c) for c in r] for r in v]
         rows = ['| ' + ' | '.join(r) + ' |\n' for r in cells]
-        sep = '---'.join([' '] * 10)
-        sepnl = sep + '\n'
-        return (sepnl + sepnl.join(rows) + sep).replace('0', ' ')
+        sep = '---'.join([' '] * 10) + '\n'
+        return (sep + sep.join(rows) + sep).replace('0', ' ')
 
     def _to_html(self, v):
         cells = [['<td>' + str(c) + '</td>' for c in r] for r in v]
