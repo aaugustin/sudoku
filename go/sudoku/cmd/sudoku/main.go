@@ -4,8 +4,11 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/aaugustin/sudoku/go/sudoku"
 )
 
 var solveCmd = flag.NewFlagSet("solve", flag.ContinueOnError)
@@ -74,6 +77,68 @@ func parseArgument(input string, args []string) (string, error) {
 
 }
 
+// readGrid reads the problem provided in argument, on stdin, or in a file.
+func readGrid(input string, problem string) (sudoku.Grid, error) {
+	var grid sudoku.Grid
+
+	if problem != "" {
+		// road problem from command-line argument
+
+	} else if input == "-" {
+		// read problem from standard input
+		data, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			return grid, fmt.Errorf("cannot read problem from stdin: %s", err)
+		}
+		problem = string(data)
+
+	} else {
+		// read problem from a file
+		data, err := ioutil.ReadFile(input)
+		if err != nil {
+			return grid, fmt.Errorf("cannot read problem from file: %s", err)
+		}
+		problem = string(data)
+	}
+
+	grid, err := sudoku.NewGridFromString(problem)
+	if err != nil {
+		return grid, fmt.Errorf("cannot read problem: %s", err)
+	}
+
+	return grid, nil
+}
+
+// writeGrid writes the problem to stdout or to a file.
+func writeGrid(grid sudoku.Grid, format string, output string) error {
+	problem, err := grid.ToString(format)
+	if err != nil {
+		return fmt.Errorf("cannot write problem: %s", err)
+	}
+
+	// append newline for proper display
+	if problem[len(problem)-1] != '\n' {
+		problem += "\n"
+	}
+
+	if output == "-" {
+		// write problem to standard output
+		_, err := os.Stdout.Write([]byte(problem))
+		if err != nil {
+			return fmt.Errorf("cannot write problem to stdout: %s", err)
+		}
+
+	} else {
+		// write problem to a file
+		err := ioutil.WriteFile(output, []byte(problem), 0644)
+		if err != nil {
+			return fmt.Errorf("cannot write to file: %s", err)
+		}
+	}
+
+	return nil
+}
+
 func solve(estimate bool, format string, input string, output string, multiple bool, problem string) error {
 	// TODO
 	return nil
@@ -85,7 +150,14 @@ func generate(estimate bool, format string, output string) error {
 }
 
 func display(format string, input string, output string, problem string) error {
-	// TODO
+	grid, err := readGrid(input, problem)
+	if err != nil {
+		return err
+	}
+	err = writeGrid(grid, format, output)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

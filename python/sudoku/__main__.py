@@ -1,5 +1,7 @@
 import argparse
 
+from .grid import Grid
+
 
 def build_parser():
     """
@@ -158,7 +160,8 @@ def display_cmd(format, input, output, problem):
     """
     if problem is None:
         problem = input.read()
-    # TODO
+    grid = Grid.from_string(problem)
+    output.write(grid.to_string(format))
 
 
 def main(args=None):
