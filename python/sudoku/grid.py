@@ -8,6 +8,12 @@ class Grid:
     def __eq__(self, other):
         return isinstance(other, Grid) and self.values == other.values
 
+    def __iter__(self):
+        return iter(self.values)
+
+    def copy(self):
+        return Grid(self.values.copy())
+
     @classmethod
     def from_string(cls, input):
         """

@@ -4,6 +4,15 @@ from .grid import Grid
 
 
 class TestGrid(unittest.TestCase):
+    def test_copy(self):
+        # fmt: off
+        grid = Grid([5, 3, 0, 0, 7, 0, 0, 0, 0, 6, 0, 0, 1, 9, 5, 0, 0, 0, 0, 9, 8, 0, 0, 0, 0, 6, 0, 8, 0, 0, 0, 6, 0, 0, 0, 3, 4, 0, 0, 8, 0, 3, 0, 0, 1, 7, 0, 0, 0, 2, 0, 0, 0, 6, 0, 6, 0, 0, 0, 0, 2, 8, 0, 0, 0, 0, 4, 1, 9, 0, 0, 5, 0, 0, 0, 0, 8, 0, 0, 7, 9])
+        # fmt: on
+        copy = grid.copy()
+        self.assertEqual(grid, copy)
+        copy.values[2] = 1
+        self.assertNotEqual(grid, copy)
+
     def test_from_string(self):
         # fmt: off
         tests = [

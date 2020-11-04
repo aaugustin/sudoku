@@ -1,6 +1,7 @@
 import argparse
 
 from .grid import Grid
+from .solver import solve
 
 
 def build_parser():
@@ -142,7 +143,9 @@ def solve_cmd(estimate, format, input, output, multiple, problem):
     """
     if problem is None:
         problem = input.read()
-    # TODO
+    grid = Grid.from_string(problem)
+    for solution in solve(grid):
+        output.write(solution.to_string(format))
 
 
 def generate_cmd(estimate, format, output):

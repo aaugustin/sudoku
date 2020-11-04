@@ -140,7 +140,17 @@ func writeGrid(grid sudoku.Grid, format string, output string) error {
 }
 
 func solve(estimate bool, format string, input string, output string, multiple bool, problem string) error {
-	// TODO
+	grid, err := readGrid(input, problem)
+	if err != nil {
+		return err
+	}
+	grids := sudoku.Solve(&grid)
+	for _, grid = range grids {
+		err = writeGrid(grid, format, output)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
