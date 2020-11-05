@@ -1,5 +1,6 @@
 import argparse
 
+from .generator import generate
 from .grid import Grid
 from .solver import solve
 
@@ -153,7 +154,8 @@ def generate_cmd(estimate, format, output):
     Implement the generate command.
 
     """
-    # TODO
+    grid = generate()
+    output.write(grid.to_string(format))
 
 
 def display_cmd(format, input, output, problem):

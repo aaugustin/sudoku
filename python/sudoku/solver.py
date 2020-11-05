@@ -54,7 +54,6 @@ class Solver:
         # Assign value.
         self.choices[cell].clear()
         self.values[cell] = value
-        self.progress += 1
 
         # Apply constraints.
         for rel_cell in RELATIONS[cell]:
@@ -80,6 +79,7 @@ class Solver:
                 return False
 
         # No incompatibility was found.
+        self.progress += 1
         return True
 
     def search(self):

@@ -155,7 +155,11 @@ func solve(estimate bool, format string, input string, output string, multiple b
 }
 
 func generate(estimate bool, format string, output string) error {
-	// TODO
+	grid := sudoku.Generate()
+	err := writeGrid(grid, format, output)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

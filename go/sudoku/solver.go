@@ -68,7 +68,6 @@ func (s *solver) mark(cell int, value uint8) bool {
 	// Assign value.
 	s.conflicts[cell] = conflict
 	s.grid[cell] = value
-	s.progress++
 
 	// Apply constraints.
 	for _, related := range relations[cell] {
@@ -98,6 +97,7 @@ func (s *solver) mark(cell int, value uint8) bool {
 	}
 
 	// No incompatibility was found.
+	s.progress++
 	return true
 }
 
