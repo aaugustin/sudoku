@@ -3,6 +3,8 @@ import random
 from .grid import Grid
 from .solver import Solver
 
+__all__ = ["generate"]
+
 
 def random_order():
     order = list(range(81))

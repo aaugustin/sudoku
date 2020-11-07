@@ -1,3 +1,6 @@
+__all__ = ["Grid"]
+
+
 class Grid:
     def __init__(self, values=None):
         if values is None:

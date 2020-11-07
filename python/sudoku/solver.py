@@ -2,6 +2,9 @@ import collections
 
 from .grid import Grid
 
+__all__ = ["solve"]
+
+
 RELATIONS = [[] for _ in range(81)]
 
 for i1 in range(9):
