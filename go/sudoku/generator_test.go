@@ -15,3 +15,10 @@ func TestGenerate(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkGenerate(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		rand.Seed(int64(42 * n))
+		_ = Generate()
+	}
+}

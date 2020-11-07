@@ -1,6 +1,10 @@
 package sudoku
 
-import "testing"
+import (
+	"bufio"
+	"os"
+	"testing"
+)
 
 func TestSolve(t *testing.T) {
 	var tests = []struct {
@@ -53,5 +57,43 @@ func TestSolve(t *testing.T) {
 				t.Errorf("%v: #%d: got %v, want %v", test.input, i, g, w)
 			}
 		}
+	}
+}
+
+func loadPuzzles() ([]Grid, error) {
+	grids := make([]Grid, 0, 95)
+
+	file, err := os.Open("../../samples/95_hard_puzzles")
+	if err != nil {
+		return grids, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		grid, err := NewGridFromString(line)
+		if err != nil {
+			return grids, err
+		}
+		grids = append(grids, grid)
+	}
+
+	if err := scanner.Err(); err != nil {
+		return grids, err
+	}
+
+	return grids, nil
+}
+
+func BenchmarkSolve(b *testing.B) {
+	grids, err := loadPuzzles()
+	if err != nil {
+		b.Errorf("failed to load grids: %s", err)
+		return
+	}
+	for n := 0; n < b.N; n++ {
+		grid := grids[n%len(grids)]
+		Solve(&grid)
 	}
 }
