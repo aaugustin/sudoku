@@ -1,7 +1,15 @@
-*.pyc
+# go
+
+cover.out
+
+# python
+
+__pycache__
 .coverage
+htmlcov
+
+# legacy
+
+*.pyc
 .tox
-build
-dist
-MANIFEST
-sudoku/csudoku.so
+csudoku.so
