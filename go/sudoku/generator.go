@@ -32,6 +32,7 @@ func randomValue(choices uint16) uint8 {
 func randomGrid() Grid {
 	for {
 		var s solver
+		s.init()
 		// Fill cells with random values until the grid is complete
 		for _, cell := range randomOrder() {
 			if s.grid[cell] != 0 {
@@ -60,6 +61,7 @@ func minimize(g Grid) Grid {
 		g[cell], value = uint8(0), g[cell]
 		var s solver
 		var grids []Grid
+		s.init()
 		if !s.load(&g) {
 			panic("minimize expects a valid grid")
 		}

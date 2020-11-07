@@ -32,12 +32,23 @@ type solver struct {
 	conflicts [81]uint16 // bitmask - uses bits 1 to 9 out of 16
 }
 
+func (s *solver) init() {
+	// Allocate memory only once instead of growing the slice incrementally.
+	if s.next != nil {
+		panic("must init only once")
+	}
+	s.next = make([]int, 0, 81)
+}
+
 func (s *solver) copy() solver {
+	// Given that s.next is empty, sharing the same underlying array is fine.
+	// Indeed, mark() only pushes next steps in the queue and then pops them.
+	// Since search() explores options sequentially, reusing the same memory
+	// space for next steps doesn't cause problems.
 	if len(s.next) > 0 {
 		panic("must process next before making copy")
 	}
 	copy := *s
-	copy.next = nil // avoid sharing underlying array
 	return copy
 }
 
@@ -141,6 +152,7 @@ func (s *solver) candidate() int {
 func Solve(g *Grid) []Grid {
 	var s solver
 	var grids []Grid
+	s.init()
 	if s.load(g) {
 		grids = s.search(grids)
 	}
