@@ -40,18 +40,6 @@ func (s *solver) init() {
 	s.next = make([]int, 0, 81)
 }
 
-func (s *solver) copy() solver {
-	// Given that s.next is empty, sharing the same underlying array is fine.
-	// Indeed, mark() only pushes next steps in the queue and then pops them.
-	// Since search() explores options sequentially, reusing the same memory
-	// space for next steps doesn't cause problems.
-	if len(s.next) > 0 {
-		panic("must process next before making copy")
-	}
-	copy := *s
-	return copy
-}
-
 func (s *solver) load(grid *Grid) bool {
 	for cell, value := range grid {
 		if value == 0 {
@@ -119,11 +107,20 @@ func (s *solver) search(grids []Grid) []Grid {
 		return grids
 	}
 
+	// Since s.next is empty, sharing the underlying array with a copy is OK.
+	// Indeed, mark() only pushes next steps in the queue and then pops them.
+	// Since search() explores options sequentially, reusing the same memory
+	// space for next steps doesn't cause problems.
+	if len(s.next) > 0 {
+		panic("must process next before searching")
+	}
+
 	// Try all possible values of the cell with the fewest choices.
+	var copy solver
 	cell := s.candidate()
 	for value := uint8(1); value < uint8(10); value++ {
 		if s.conflicts[cell]&(1<<value) == 0 {
-			copy := s.copy()
+			copy = *s
 			if copy.mark(cell, value) {
 				grids = copy.search(grids)
 			}
