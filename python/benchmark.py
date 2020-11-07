@@ -11,7 +11,7 @@ def benchmark_solve():
     t = timeit.timeit(
         """\
 for grid in grids:
-    list(sudoku.solve(grid))
+    sudoku.solve(grid)
 """,
         f"""\
 import sudoku

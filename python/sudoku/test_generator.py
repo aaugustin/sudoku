@@ -11,5 +11,5 @@ class TestGenerate(unittest.TestCase):
             with self.subTest(seed=42 << seed):
                 random.seed(seed)
                 grid = generate()
-                solutions = list(solve(grid))
+                solutions = solve(grid)
                 self.assertEqual(len(solutions), 1)

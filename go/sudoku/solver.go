@@ -100,11 +100,10 @@ func (s *solver) mark(cell int, value uint8) bool {
 	return true
 }
 
-func (s *solver) search(grids []Grid) []Grid {
+func (s *solver) search(f func(*Grid) bool) bool {
 	// If the grid is complete, there is a solution in this branch.
 	if s.progress == 81 {
-		grids = append(grids, s.grid)
-		return grids
+		return f(&s.grid)
 	}
 
 	// Since s.next is empty, sharing the underlying array with a copy is OK.
@@ -122,11 +121,13 @@ func (s *solver) search(grids []Grid) []Grid {
 		if s.conflicts[cell]&(1<<value) == 0 {
 			copy = *s
 			if copy.mark(cell, value) {
-				grids = copy.search(grids)
+				if !copy.search(f) {
+					return false
+				}
 			}
 		}
 	}
-	return grids
+	return true
 }
 
 func (s *solver) candidate() int {
@@ -150,13 +151,19 @@ func (s *solver) candidate() int {
 	return candidate
 }
 
+// solve calls f for each result found and aborts if f returns false.
+func (g *Grid) solve(f func(*Grid) bool) bool {
+	var s solver
+	s.init()
+	return s.load(g) && s.search(f)
+}
+
 // Solve a grid. Return a slice of 0, 1, or several solutions.
 func Solve(g *Grid) []Grid {
-	var s solver
 	var grids []Grid
-	s.init()
-	if s.load(g) {
-		grids = s.search(grids)
-	}
+	g.solve(func(g *Grid) bool {
+		grids = append(grids, *g)
+		return true
+	})
 	return grids
 }

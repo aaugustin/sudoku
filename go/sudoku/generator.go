@@ -53,31 +53,33 @@ func randomGrid() Grid {
 	}
 }
 
-func minimize(g Grid) Grid {
-	// g is a Grid rather than a *Grid because
+func (g *Grid) minimize() {
 	var value uint8
-	// Clear cells until this creates multiple solutions
+	var solved bool
+	// Clear cells until this creates multiple solutions.
 	for _, cell := range randomOrder() {
 		g[cell], value = uint8(0), g[cell]
-		var s solver
-		var grids []Grid
-		s.init()
-		if !s.load(&g) {
-			panic("minimize expects a valid grid")
-		}
-		grids = s.search(grids)
-		if len(grids) == 0 {
-			panic("minimize expects a valid grid")
-		}
-		if len(grids) > 1 {
+		solved = false
+		if !g.solve(func(_ *Grid) bool {
+			// Another solution was already found, abort.
+			if solved {
+				return false
+			}
+			// First solution is found, continue.
+			solved = true
+			return true
+		}) {
+			// More than one solution was found, restore cell.
 			g[cell] = value
 		}
+		if !solved {
+			panic("minimize expects a valid grid")
+		}
 	}
-	return g
 }
 
 func Generate() Grid {
 	grid := randomGrid()
-	grid = minimize(grid)
+	grid.minimize()
 	return grid
 }

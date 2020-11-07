@@ -1,7 +1,7 @@
 import random
 
 from .grid import Grid
-from .solver import Solver
+from .solver import Solver, _solve
 
 __all__ = ["generate"]
 
@@ -15,7 +15,7 @@ def random_order():
 def random_grid():
     while True:
         solver = Solver()
-        # Fill cells with random values until the grid is complete
+        # Fill cells with random values until the grid is complete.
         for cell in random_order():
             if solver.values[cell]:
                 continue
@@ -27,16 +27,23 @@ def random_grid():
 
 
 def minimize(grid):
-    grid = grid.copy()
+    def unique(_):
+        nonlocal solved
+        # Another solution was already found, abort.
+        if solved:
+            return False
+        # First solution is found, continue.
+        solved = True
+        return True
+
+    # Clear cells until this creates multiple solutions.
     for cell in random_order():
         grid.values[cell], value = 0, grid.values[cell]
-        solver = Solver()
-        assert solver.load(grid), "minimize expects a valid grid"
-        grids = list(solver.search())
-        assert grids, "minimize expects a valid grid"
-        if len(grids) > 1:
+        solved = False
+        if not _solve(grid, unique):
+            # More than one solution was found, restore cell.
             grid.values[cell] = value
-    return grid
+        assert solved, "minimize expects a valid grid"
 
 
 def generate():
@@ -45,5 +52,5 @@ def generate():
 
     """
     grid = random_grid()
-    grid = minimize(grid)
+    minimize(grid)
     return grid

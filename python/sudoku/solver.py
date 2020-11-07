@@ -85,11 +85,10 @@ class Solver:
         self.progress += 1
         return True
 
-    def search(self):
+    def search(self, callback):
         # If the grid is complete, there is a solution in this branch.
         if self.progress == 81:
-            yield Grid(self.values)
-            return
+            return callback(Grid(self.values))
 
         # Try all possible values of the cell with the fewest choices.
         cell = min(
@@ -99,16 +98,28 @@ class Solver:
         for value in self.choices[cell]:
             copy = self.copy()
             if copy.mark(cell, value):
-                yield from copy.search()
+                if not copy.search(callback):
+                    return False
+        return True
+
+
+def _solve(grid, callback):
+    solver = Solver()
+    return solver.load(grid) and solver.search(callback)
 
 
 def solve(grid):
     """
     Solve a grid.
 
-    Return an iterator of 0, 1, or several solutions.
+    Return a list of 0, 1, or several solutions.
 
     """
-    solver = Solver()
-    if solver.load(grid):
-        yield from solver.search()
+    def record(grid):
+        nonlocal grids
+        grids.append(grid)
+        return True
+
+    grids = []
+    _solve(grid, record)
+    return grids

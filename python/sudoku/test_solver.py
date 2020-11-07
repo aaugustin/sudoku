@@ -44,4 +44,4 @@ class TestSolve(unittest.TestCase):
         # fmt: on
         for input, expected in tests:
             with self.subTest(input=input):
-                self.assertEqual(list(solve(input)), expected)
+                self.assertEqual(solve(input), expected)
