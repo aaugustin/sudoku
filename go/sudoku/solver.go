@@ -140,6 +140,11 @@ func (s *solver) candidate() int {
 		if value == 0 {
 			conflicts := bits.OnesCount16(s.conflicts[cell])
 			if conflicts > score {
+				// candidate() runs when all empty cells have at least 2 choices i.e. at
+				// most 7 conflicts. Stop searching if we find a cell with 7 conflicts.
+				if conflicts >= 7 {
+					return cell
+				}
 				candidate = cell
 				score = conflicts
 			}
