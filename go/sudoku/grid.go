@@ -5,11 +5,14 @@ import (
 	"strings"
 )
 
+// Grid represents a problem or a solution.
+//
+// Use NewGridFromString and Grid.ToString to parse and serialize grids.
 type Grid [81]uint8
 
 // Load a grid from a string.
 //
-// values represents non-empty cells with a digit and empty cells
+// Input represents non-empty cells with a digit and empty cells
 // with "_", ".", or " ". Line breaks are optional.
 func NewGridFromString(input string) (Grid, error) {
 	var grid Grid
@@ -60,14 +63,13 @@ func NewGridFromString(input string) (Grid, error) {
 
 // Serialize a grid to string.
 //
-// Supported ``format`` values are:
+// Supported formats are:
+// console: for human-friendly display in a console;
+// grid: nine lines of nine characters;
+// line: one line of 81 characters;
+// html: for human-friendly display in a web browser.
 //
-// - console: for human-friendly display in a console
-// - grid: nine lines of nine characters, accepted by ``NewGridFromString``;
-// - line: one line of 81 characters, accepted by ``NewGridFromString``;
-// - html: for human-friendly display in a web browser
-//
-// console and grid include a trailing newline; line and html don't.
+// Output in grid or line format is valid input for NewGridFromString.
 func (grid *Grid) ToString(format string) (string, error) {
 	switch format {
 	case "console":

@@ -2,6 +2,13 @@ __all__ = ["Grid"]
 
 
 class Grid:
+    """
+    Represent a problem or a solution.
+
+    Use ``from_string`` and ``to_string`` to parse and serialize grids.
+
+    """
+
     def __init__(self, values=None):
         if values is None:
             values = [0 for _ in range(81)]
@@ -50,14 +57,14 @@ class Grid:
         """
         Serialize a grid to a string.
 
-        Supported ``format`` values are:
+        Supported formats are:
 
-        - console: for human-friendly display in a console
-        - grid: nine lines of nine characters, accepted by ``from_string``;
-        - line: one line of 81 characters, accepted by ``from_string``;
-        - html: for human-friendly display in a web browser
+        - console: for human-friendly display in a console;
+        - grid: nine lines of nine characters;
+        - line: one line of 81 characters;
+        - html: for human-friendly display in a web browser.
 
-        console and grid include a trailing newline; line and html don't.
+        Output in grid or line format is valid input for ``from_string``.
 
         """
         if format not in ["console", "grid", "line", "html"]:

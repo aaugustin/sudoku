@@ -21,6 +21,16 @@ for i1 in range(9):
 
 
 class Solver:
+    """
+    Implement the Sudoku solving algorithm.
+
+    Using a Solver takes two steps:
+
+    1. Call mark for each cell whose value is known.
+    2. Call search to look for solutions.
+
+    """
+
     def __init__(self):
         self.choices = [set(range(1, 10)) for _ in range(81)]
         self.values = [0 for _ in range(81)]
@@ -37,6 +47,12 @@ class Solver:
         return copy
 
     def load(self, grid):
+        """
+        Mark all cells whose value is known.
+
+        The return value is the same as in ``mark``.
+
+        """
         for cell, value in enumerate(grid):
             if not value:
                 continue
@@ -45,6 +61,17 @@ class Solver:
         return True
 
     def mark(self, cell, value):
+        """
+        Attempt to set the value of a cell.
+
+        If value could be set, ``mark`` returns ``True``. This doesn't imply
+        that the problem has at least a solution.
+
+        If the value couldn't be set without breaking the rules, ``mark``
+        returns ``False``. This makes the solver unusable. It must be
+        discarded.
+
+        """
         # If this value is already known, there's nothing to do.
         # This happens if the input is over-constrained.
         if self.values[cell] == value:
@@ -86,6 +113,18 @@ class Solver:
         return True
 
     def search(self, callback):
+        """
+        Find all solutions.
+
+        Each solution is reported by calling ``callback``.
+
+        If ``callback`` returns ``True``, ``search`` continues and eventually
+        returns ``True`` when the search completes.
+
+        If ``callback`` returns ``False``, ``search`` aborts and returns
+        ``False`` immediately.
+
+        """
         # If the grid is complete, there is a solution in this branch.
         if self.progress == 81:
             return callback(Grid(self.values))
@@ -104,6 +143,10 @@ class Solver:
 
 
 def _solve(grid, callback):
+    """
+    Helper for running a solver on a grid.
+
+    """
     solver = Solver()
     return solver.load(grid) and solver.search(callback)
 

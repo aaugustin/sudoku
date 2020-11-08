@@ -139,6 +139,7 @@ func writeGrid(grid sudoku.Grid, format string, output string) error {
 	return nil
 }
 
+// solve implements the solve command.
 func solve(estimate bool, format string, input string, output string, multiple bool, problem string) error {
 	grid, err := readGrid(input, problem)
 	if err != nil {
@@ -154,6 +155,7 @@ func solve(estimate bool, format string, input string, output string, multiple b
 	return nil
 }
 
+// generate implements the generate command.
 func generate(estimate bool, format string, output string) error {
 	grid := sudoku.Generate()
 	err := writeGrid(grid, format, output)
@@ -163,6 +165,7 @@ func generate(estimate bool, format string, output string) error {
 	return nil
 }
 
+// display implements the display command.
 func display(format string, input string, output string, problem string) error {
 	grid, err := readGrid(input, problem)
 	if err != nil {

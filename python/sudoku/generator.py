@@ -13,6 +13,10 @@ def random_order():
 
 
 def random_grid():
+    """
+    Create a solution i.e. a valid, complete grid.
+
+    """
     while True:
         solver = Solver()
         # Fill cells with random values until the grid is complete.
@@ -27,6 +31,11 @@ def random_grid():
 
 
 def minimize(grid):
+    """
+    Turn a solution into a problem by removing values from cells.
+
+    """
+
     def unique(_):
         nonlocal solved
         # Another solution was already found, abort.
@@ -48,7 +57,7 @@ def minimize(grid):
 
 def generate():
     """
-    Generate a grid.
+    Create a random problem.
 
     """
     grid = random_grid()
