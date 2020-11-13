@@ -1,9 +1,5 @@
 import argparse
 
-from .generator import generate
-from .grid import Grid
-from .solver import solve
-
 
 def build_parser():
     """
@@ -142,6 +138,9 @@ def solve_cmd(estimate, format, input, output, multiple, problem):
     Implement the solve command.
 
     """
+    from .grid import Grid
+    from .solver import solve
+
     if problem is None:
         problem = input.read()
     grid = Grid.from_string(problem)
@@ -154,6 +153,8 @@ def generate_cmd(estimate, format, output):
     Implement the generate command.
 
     """
+    from .generator import generate
+
     grid = generate()
     output.write(grid.to_string(format))
 
@@ -163,6 +164,8 @@ def display_cmd(format, input, output, problem):
     Implement the display command.
 
     """
+    from .grid import Grid
+
     if problem is None:
         problem = input.read()
     grid = Grid.from_string(problem)
