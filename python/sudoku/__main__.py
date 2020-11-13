@@ -130,6 +130,25 @@ def build_parser():
         help="problem, formatted as a 81-character string",
     )
 
+    # serve command
+
+    serve_parser = subparsers.add_parser(
+        "serve",
+        description="start web server",
+        help="run web server",
+    )
+    serve_parser.add_argument(
+        "--host",
+        default="",
+        help="hostname or IP address on which to listen",
+    )
+    serve_parser.add_argument(
+        "-p",
+        "--port",
+        default=29557,
+        type=int,
+        help="TCP port on which to listen",
+    )
     return parser
 
 
@@ -170,6 +189,25 @@ def display_cmd(format, input, output, problem):
         problem = input.read()
     grid = Grid.from_string(problem)
     output.write(grid.to_string(format))
+
+
+def serve_cmd(host, port):
+    """
+    Implement the serve command.
+
+    """
+    from wsgiref.simple_server import make_server
+
+    from .server import application
+
+    with make_server(host, port, application) as server:
+        if host == "":
+            host = "localhost"
+        print(f"Serving on http://{host}:{port}/")
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            print()
 
 
 def main(args=None):

@@ -139,7 +139,7 @@ func (grid *Grid) toHTML() string {
 		for j := 0; j < 9; j++ {
 			cell := grid[9*i+j]
 			if cell == 0 {
-				output.WriteString("<td> </td>")
+				output.WriteString("<td></td>")
 			} else {
 				output.WriteString("<td>" + string('0'+cell) + "</td>")
 			}

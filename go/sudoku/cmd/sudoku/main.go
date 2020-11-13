@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
 
@@ -14,12 +15,15 @@ import (
 var solveCmd = flag.NewFlagSet("solve", flag.ContinueOnError)
 var generateCmd = flag.NewFlagSet("generate", flag.ContinueOnError)
 var displayCmd = flag.NewFlagSet("display", flag.ContinueOnError)
+var serveCmd = flag.NewFlagSet("serve", flag.ContinueOnError)
 
 var estimate bool
 var format string
 var input string
 var output string
 var multiple bool
+var host string
+var port int
 
 func init() {
 	// Bind appropriate flags to variables for each command.
@@ -48,6 +52,10 @@ func init() {
 	displayCmd.StringVar(&input, "input", "-", "read problem from this `file`; - for stdin)")
 	displayCmd.StringVar(&output, "o", "-", "shorthand for `output`")
 	displayCmd.StringVar(&output, "output", "-", "write solution to this `file`; - for stdout")
+
+	serveCmd.StringVar(&host, "host", "", "hostname or IP address on which to listen")
+	serveCmd.IntVar(&port, "p", 29557, "TCP port on which to listen")
+	serveCmd.IntVar(&port, "port", 29557, "TCP port on which to listen")
 }
 
 func usage() {
@@ -56,7 +64,8 @@ func usage() {
 		"Usage of sudoku:\n"+
 			"  solve ...\n    \tsolve Sudoku grid\n"+
 			"  generate ...\n    \tgenerate Sudoku grid\n"+
-			"  display ...\n    \tdisplay Sudoku grid\n")
+			"  display ...\n    \tdisplay Sudoku grid\n"+
+			"  serve ...\n    \trun web server\n")
 }
 
 // parseArgument extracts at most once argument from the command line. If an
@@ -178,6 +187,16 @@ func display(format string, input string, output string, problem string) error {
 	return nil
 }
 
+// serve implements the serve command.
+func serve(host string, port int) error {
+	address := fmt.Sprintf("%s:%d", host, port)
+	if host == "" {
+		host = "localhost"
+	}
+	fmt.Printf("Serving on http://%s:%d/\n", host, port)
+	return http.ListenAndServe(address, sudoku.Handler)
+}
+
 // dispatch parses a command line and executes the requested command.
 // It returns exit code 0 on success, 1 when executing the command fails,
 // and 2 when parsing the command line fails.
@@ -238,6 +257,18 @@ func dispatch(args []string) int {
 		err = display(format, input, output, problem)
 		if err != nil {
 			fmt.Fprintln(displayCmd.Output(), err)
+			return 1
+		}
+
+	case "serve":
+		err = serveCmd.Parse(os.Args[2:])
+		if err != nil {
+			// Parse displays an error message
+			return 2
+		}
+		err = serve(host, port)
+		if err != nil {
+			fmt.Fprintln(serveCmd.Output(), err)
 			return 1
 		}
 

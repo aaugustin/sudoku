@@ -89,7 +89,7 @@ class Grid:
         return "".join(values)
 
     def _to_html(self):
-        values = [" " if value == 0 else str(value) for value in self.values]
+        values = ["" if value == 0 else str(value) for value in self.values]
         matrix = [values[9 * i : 9 * i + 9] for i in range(9)]
         data = [[f"<td>{cell}</td>" for cell in row] for row in matrix]
         rows = ["<tr>" + "".join(row) + "</tr>" for row in data]
