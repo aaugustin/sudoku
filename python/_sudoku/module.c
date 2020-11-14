@@ -83,13 +83,20 @@ Grid_AsPyObject(uint8_t values[]) {
 }
 
 static bool solve_callback(uint8_t values[], void *grids) {
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+
     PyObject *grid = Grid_AsPyObject(values);
     if (grid == NULL) {
+        PyGILState_Release(gstate);
         return false;
     }
     if (PyList_Append((PyObject *)grids, grid) < 0) {
+        PyGILState_Release(gstate);
         return false;
     }
+
+    PyGILState_Release(gstate);
     return true;
 }
 
@@ -99,6 +106,7 @@ _sudoku_solve(PyObject *self, PyObject *args, PyObject *kwds) {
     PyObject *grid;
     uint8_t values[81];
     PyObject *grids;
+    bool ok;
 
     // borrows a reference to grid
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &grid)) {
@@ -114,7 +122,10 @@ _sudoku_solve(PyObject *self, PyObject *args, PyObject *kwds) {
         return NULL;
     }
 
-    if (!grid_solve(values, solve_callback, grids)) {
+    Py_BEGIN_ALLOW_THREADS
+    ok = grid_solve(values, solve_callback, grids);
+    Py_END_ALLOW_THREADS
+    if (!ok) {
         // solve_callback may return false because a Python error occurred or
         // because there is no solution. Disambiguate.
         if (PyErr_Occurred()) {
@@ -133,8 +144,10 @@ _sudoku_generate(PyObject *self, PyObject *args) {
         return NULL;
     }
 
+    Py_BEGIN_ALLOW_THREADS
     random_grid(values);
     minimize(values);
+    Py_END_ALLOW_THREADS
     return Grid_AsPyObject(values); // may be NULL
 }
 
