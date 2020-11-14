@@ -18,4 +18,4 @@ benchmark:
 	cd sudoku && go test -bench=BenchmarkGenerate -run=X .
 
 clean:
-	cd sudoku && rm cover.out sudoku sudoku.test
+	cd sudoku && rm -f cover.out sudoku sudoku.test

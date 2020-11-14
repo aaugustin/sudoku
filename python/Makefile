@@ -20,4 +20,5 @@ benchmark:
 
 clean:
 	python -m coverage erase
-	rm -r htmlcov
+	rm -rf build htmlcov
+	rm -f _sudoku.*
