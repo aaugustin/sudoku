@@ -152,19 +152,39 @@ def build_parser():
     return parser
 
 
+def read_grid(input, problem):
+    """
+    Read the problem provided in argument or in input file.
+
+    """
+    from .grid import Grid
+
+    if problem is None:
+        problem = input.read()
+    return Grid.from_string(problem)
+
+
+def write_grid(grid, format, output):
+    """
+    Write the problem to output file.
+
+    """
+    problem = grid.to_string(format)
+    if problem[-1] != "\n":
+        problem += "\n"
+    output.write(problem)
+
+
 def solve_cmd(estimate, format, input, output, multiple, problem):
     """
     Implement the solve command.
 
     """
-    from .grid import Grid
     from .solver import solve
 
-    if problem is None:
-        problem = input.read()
-    grid = Grid.from_string(problem)
-    for solution in solve(grid):
-        output.write(solution.to_string(format))
+    grid = read_grid(input, problem)
+    for grid in solve(grid):
+        write_grid(grid, format, output)
 
 
 def generate_cmd(estimate, format, output):
@@ -175,7 +195,7 @@ def generate_cmd(estimate, format, output):
     from .generator import generate
 
     grid = generate()
-    output.write(grid.to_string(format))
+    write_grid(grid, format, output)
 
 
 def display_cmd(format, input, output, problem):
@@ -183,12 +203,8 @@ def display_cmd(format, input, output, problem):
     Implement the display command.
 
     """
-    from .grid import Grid
-
-    if problem is None:
-        problem = input.read()
-    grid = Grid.from_string(problem)
-    output.write(grid.to_string(format))
+    grid = read_grid(input, problem)
+    write_grid(grid, format, output)
 
 
 def serve_cmd(host, port):
