@@ -1,9 +1,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#ifdef HAVE_PROCESS_H
-#include <process.h> // getpid()
-#endif
 #include <stdbool.h>
 
 #include "generator.h"
@@ -172,6 +169,5 @@ static struct PyModuleDef _sudokumodule = {
 
 PyMODINIT_FUNC
 PyInit__sudoku(void) {
-    srand(time(NULL) + getpid()); // poor man's entropy
     return PyModuleDef_Init(&_sudokumodule);
 }

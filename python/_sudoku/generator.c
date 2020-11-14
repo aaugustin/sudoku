@@ -8,12 +8,39 @@
 
 static uint16_t conflict = (1 << 10) - (1 << 1); // set bits 1 to 9
 
-// random_intn generates a random integer in [0, n).
+#define RANDOM_SIZE 256
+static uint8_t random_bytes[RANDOM_SIZE];
+static size_t random_index = RANDOM_SIZE;
+
+// random_uint8 return a random byte.
+static uint8_t random_uint8() {
+    uint8_t result;
+    // There are two reasons for acquiring the GIL here:
+    // 1. making interactions with global variables random_bytes
+    //    and random_index thread-safe;
+    // 2. calling into the C API; _PyOS_URandom releases the GIL,
+    //    which requires holding it.
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+    if (random_index == RANDOM_SIZE) {
+        // Refill buffer from a good quality source provided by Python.
+        // Private API -- but I can't be bothered to call the public API
+        // and then copy the result back into random_bytes.
+        _PyOS_URandom(random_bytes, RANDOM_SIZE);
+        random_index = 0;
+    }
+    result = random_bytes[random_index++];
+    PyGILState_Release(gstate);
+    return result;
+}
+
+// random_intn generates a random integer in [0, n) (0 < n < 256).
 static int random_intn(int n) {
+    assert(n > 0 && n < 256);
     int result;
     int mask = (1 << fls(n)) - 1;
     do {
-        result = rand() & mask;
+        result = (int)random_uint8() & mask;
     } while (result >= n);
     return result;
 }
