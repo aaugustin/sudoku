@@ -11,5 +11,11 @@ class TestGenerate(unittest.TestCase):
             with self.subTest(seed=42 << seed):
                 random.seed(seed)
                 grid = generate()
+
+                # Most grids have between 55 and 60 zeroes
+                zero_count = list(grid).count(0)
+                self.assertGreaterEqual(zero_count, 50)
+                self.assertLessEqual(zero_count, 65)
+
                 solutions = solve(grid)
                 self.assertEqual(len(solutions), 1)
