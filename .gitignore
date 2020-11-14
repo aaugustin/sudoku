@@ -5,7 +5,9 @@ cover.out
 # python
 
 __pycache__
+*.so
 .coverage
+build
 htmlcov
 
 # legacy

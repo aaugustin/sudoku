@@ -11,7 +11,8 @@ coverage:
 	go tool cover -html=cover.out
 
 benchmark:
-	go test -bench=. ./sudoku
+	go test -bench=BenchmarkSolve -run=X ./sudoku
+	go test -bench=BenchmarkGenerate -run=X ./sudoku
 
 clean:
 	rm cover.out

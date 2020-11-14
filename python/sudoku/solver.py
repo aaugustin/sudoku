@@ -158,6 +158,7 @@ def solve(grid):
     Return a list of 0, 1, or several solutions.
 
     """
+
     def record(grid):
         nonlocal grids
         grids.append(grid)
@@ -166,3 +167,9 @@ def solve(grid):
     grids = []
     _solve(grid, record)
     return grids
+
+
+try:
+    from _sudoku import solve
+except ImportError:
+    pass

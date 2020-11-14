@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import Extension, setup
 
 setup(
     name="sudoku",
@@ -13,4 +13,14 @@ setup(
     url="https://github.com/aaugustin/sudoku",
     packages=["sudoku"],
     entry_points={"console_scripts": ["sudoku=sudoku.__main__:main"]},
+    ext_modules=[
+        Extension(
+            "_sudoku",
+            [
+                "_sudoku/module.c",
+                "_sudoku/solver.c",
+                "_sudoku/generator.c",
+            ],
+        )
+    ],
 )

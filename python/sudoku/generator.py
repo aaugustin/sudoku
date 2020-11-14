@@ -63,3 +63,9 @@ def generate():
     grid = random_grid()
     minimize(grid)
     return grid
+
+
+try:
+    from _sudoku import generate
+except ImportError:
+    pass
