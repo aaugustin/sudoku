@@ -112,22 +112,17 @@ class Solver:
         self.progress += 1
         return True
 
-    def search(self, callback):
+    def search(self):
         """
         Find all solutions.
 
-        Each solution is reported by calling ``callback``.
-
-        If ``callback`` returns ``True``, ``search`` continues and eventually
-        returns ``True`` when the search completes.
-
-        If ``callback`` returns ``False``, ``search`` aborts and returns
-        ``False`` immediately.
+        ``search`` returns a generator. To abort the search, stop iterating.
 
         """
         # If the grid is complete, there is a solution in this branch.
         if self.progress == 81:
-            return callback(Grid(self.values))
+            yield Grid(self.values)
+            return
 
         # Try all possible values of the cell with the fewest choices.
         cell = min(
@@ -137,18 +132,17 @@ class Solver:
         for value in self.choices[cell]:
             copy = self.copy()
             if copy.mark(cell, value):
-                if not copy.search(callback):
-                    return False
-        return True
+                yield from copy.search()
 
 
-def _solve(grid, callback):
+def _solve(grid):
     """
     Helper for running a solver on a grid.
 
     """
     solver = Solver()
-    return solver.load(grid) and solver.search(callback)
+    if solver.load(grid):
+        yield from solver.search()
 
 
 def solve(grid):
@@ -158,15 +152,7 @@ def solve(grid):
     Return a list of 0, 1, or several solutions.
 
     """
-
-    def record(grid):
-        nonlocal grids
-        grids.append(grid)
-        return True
-
-    grids = []
-    _solve(grid, record)
-    return grids
+    return list(_solve(grid))
 
 
 try:

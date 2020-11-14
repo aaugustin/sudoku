@@ -36,24 +36,22 @@ def minimize(grid):
     Turn a solution into a problem by removing values from cells.
 
     """
-
-    def unique(_):
-        nonlocal solved
-        # Another solution was already found, abort.
-        if solved:
-            return False
-        # First solution is found, continue.
-        solved = True
-        return True
-
     # Clear cells until this creates multiple solutions.
     for cell in random_order():
         grid.values[cell], value = 0, grid.values[cell]
-        solved = False
-        if not _solve(grid, unique):
+        solutions = _solve(grid)
+        try:
+            next(solutions)
+        except StopIteration:  # pragma: no cover
+            raise AssertionError("minimize expects a valid grid")
+        try:
+            next(solutions)
+        except StopIteration:
+            # Only one solution was found.
+            pass
+        else:
             # More than one solution was found, restore cell.
             grid.values[cell] = value
-        assert solved, "minimize expects a valid grid"
 
 
 def generate():
