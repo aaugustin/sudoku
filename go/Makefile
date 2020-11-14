@@ -1,18 +1,21 @@
-.PHONY: style test coverage benchmark clean
+.PHONY: style build test coverage benchmark clean
 
 style:
-	go fmt ./sudoku ./sudoku/cmd/sudoku
+	cd sudoku && go fmt . ./cmd/sudoku
+
+build:
+	cd sudoku && go build ./cmd/sudoku
 
 test:
-	go test ./sudoku
+	cd sudoku && go test .
 
 coverage:
-	go test -coverprofile=cover.out ./sudoku
-	go tool cover -html=cover.out
+	cd sudoku && go test -coverprofile=cover.out .
+	cd sudoku && go tool cover -html=cover.out
 
 benchmark:
-	go test -bench=BenchmarkSolve -run=X ./sudoku
-	go test -bench=BenchmarkGenerate -run=X ./sudoku
+	cd sudoku && go test -bench=BenchmarkSolve -run=X .
+	cd sudoku && go test -bench=BenchmarkGenerate -run=X .
 
 clean:
-	rm cover.out
+	cd sudoku && rm cover.out sudoku sudoku.test
