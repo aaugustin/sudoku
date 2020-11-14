@@ -36,11 +36,10 @@ func randomGrid() Grid {
 				break
 			}
 		}
-		// If mark failed, solver didn't increment progress. Try again.
-		if s.progress < 81 {
-			continue
+		// If all cells were filled succesfully, the grid is valid.
+		if s.progress == 81 {
+			return s.grid
 		}
-		return s.grid
 	}
 }
 

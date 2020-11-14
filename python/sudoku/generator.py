@@ -26,6 +26,7 @@ def random_grid():
             value = random.choice(list(solver.choices[cell]))
             if not solver.mark(cell, value):
                 break
+        # If all cells were filled succesfully, the grid is valid.
         else:
             return Grid(solver.values)
 
