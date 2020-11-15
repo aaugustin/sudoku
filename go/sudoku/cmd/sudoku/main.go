@@ -156,11 +156,25 @@ func solve(estimate bool, format string, input string, output string, multiple b
 	if err != nil {
 		return err
 	}
-	grids, difficulty := sudoku.Solve(&grid)
-	for _, grid = range grids {
+	solutions, difficulty := sudoku.Solve(&grid)
+	if len(solutions) == 1 {
+		grid = solutions[0]
 		err = writeGrid(grid, format, output)
 		if err != nil {
 			return err
+		}
+	} else if len(solutions) == 0 {
+		return errors.New("no solution found")
+	} else { // len(solutions) > 1
+		if multiple {
+			for _, grid = range solutions {
+				err = writeGrid(grid, format, output)
+				if err != nil {
+					return err
+				}
+			}
+		} else {
+			return fmt.Errorf("multiple solutions found (%d)", len(solutions))
 		}
 	}
 	if estimate {

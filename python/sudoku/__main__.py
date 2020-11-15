@@ -185,8 +185,19 @@ def solve_cmd(estimate, format, input, output, multiple, problem):
 
     grid = read_grid(input, problem)
     solutions, difficulty = solve(grid)
-    for grid in solutions:
+    if len(solutions) == 1:
+        grid = solutions[0]
         write_grid(grid, format, output)
+    elif len(solutions) == 0:
+        sys.stderr.write("no solution found\n")
+        sys.exit(1)
+    else:  # len(solutions) > 1
+        if multiple:
+            for grid in solutions:
+                write_grid(grid, format, output)
+        else:
+            sys.stderr.write(f"multiple solutions found ({len(solutions)})\n")
+            sys.exit(1)
     if estimate:
         sys.stderr.write(f"Difficulty: {difficulty:.2f}\n")
 
