@@ -162,7 +162,11 @@ def read_grid(input, problem):
 
     if problem is None:
         problem = input.read()
-    return Grid.from_string(problem)
+    try:
+        return Grid.from_string(problem)
+    except ValueError as exc:
+        sys.stderr.write(f"cannot read problem: {exc}\n")
+        sys.exit(1)
 
 
 def write_grid(grid, format, output):
