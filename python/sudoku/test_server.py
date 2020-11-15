@@ -45,6 +45,7 @@ class TestServer(unittest.TestCase):
         status, headers, body = request("GET", url)
 
         self.assertEqual(status, 200)
+        self.assertIn("★☆☆☆☆", body)
         self.assertIn(
             "<table><tr><td>5</td><td>3</td><td contenteditable></td><td contenteditable></td><td>7</td>",
             body,
@@ -76,6 +77,7 @@ class TestServer(unittest.TestCase):
         status, headers, body = request("GET", url)
 
         self.assertEqual(status, 200)
+        self.assertIn("★☆☆☆☆", body)
         self.assertIn(
             "<table><tr><td>5</td><td>3</td><td>4</td><td>6</td><td>7</td>", body
         )

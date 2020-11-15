@@ -103,7 +103,10 @@ _sudoku_solve(PyObject *self, PyObject *args, PyObject *kwds) {
     PyObject *grid;
     uint8_t values[81];
     PyObject *grids;
-    bool ok;
+    solver s;
+    size_t next[81];
+    double difficulty;
+    PyObject *result;
 
     // borrows a reference to grid
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &grid)) {
@@ -120,22 +123,29 @@ _sudoku_solve(PyObject *self, PyObject *args, PyObject *kwds) {
     }
 
     Py_BEGIN_ALLOW_THREADS
-    ok = grid_solve(values, solve_callback, grids);
-    Py_END_ALLOW_THREADS
-    if (!ok) {
-        // solve_callback may return false because a Python error occurred or
-        // because there is no solution. Disambiguate.
-        if (PyErr_Occurred()) {
-            Py_DECREF(grids);
-            return NULL;
-        }
+    solver_init(&s, next);
+    if (solver_load(&s, values)) {
+        solver_search(&s, solve_callback, grids);
     }
-    return grids;
+    Py_END_ALLOW_THREADS
+    // solve_callback may cause a Python error.
+    if (PyErr_Occurred()) {
+        Py_DECREF(grids);
+        return NULL;
+    }
+    difficulty = solver_difficulty(&s);
+
+    result = Py_BuildValue("Od", grids, difficulty);
+    Py_DECREF(grids);
+    return result; // may be NULL
 }
 
 static PyObject *
 _sudoku_generate(PyObject *self, PyObject *args) {
     uint8_t values[81];
+    double difficulty;
+    PyObject *grid;
+    PyObject *result;
 
     if (!PyArg_ParseTuple(args, "")) {
         return NULL;
@@ -143,9 +153,17 @@ _sudoku_generate(PyObject *self, PyObject *args) {
 
     Py_BEGIN_ALLOW_THREADS
     random_grid(values);
-    minimize(values);
+    difficulty = minimize(values);
     Py_END_ALLOW_THREADS
-    return Grid_AsPyObject(values); // may be NULL
+
+    grid = Grid_AsPyObject(values);
+    if (grid == NULL) {
+        return NULL;
+    }
+
+    result = Py_BuildValue("Od", grid, difficulty);
+    Py_DECREF(grid);
+    return result; // may be NULL
 }
 
 static PyMethodDef _sudoku_methods[] = {

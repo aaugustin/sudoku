@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 
 def build_parser():
@@ -183,8 +184,11 @@ def solve_cmd(estimate, format, input, output, multiple, problem):
     from .solver import solve
 
     grid = read_grid(input, problem)
-    for grid in solve(grid):
+    solutions, difficulty = solve(grid)
+    for grid in solutions:
         write_grid(grid, format, output)
+    if estimate:
+        sys.stderr.write(f"Difficulty: {difficulty:.2f}\n")
 
 
 def generate_cmd(estimate, format, output):
@@ -194,8 +198,10 @@ def generate_cmd(estimate, format, output):
     """
     from .generator import generate
 
-    grid = generate()
+    grid, difficulty = generate()
     write_grid(grid, format, output)
+    if estimate:
+        sys.stderr.write(f"Difficulty: {difficulty:.2f}\n")
 
 
 def display_cmd(format, input, output, problem):

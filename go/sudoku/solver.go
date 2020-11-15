@@ -1,6 +1,9 @@
 package sudoku
 
-import "math/bits"
+import (
+	"math"
+	"math/bits"
+)
 
 var relations [81][20]int
 
@@ -33,6 +36,7 @@ const conflict uint16 = (1 << 10) - (1 << 1) // set bits 1 to 9
 // Third, call search to look for solutions.
 type solver struct {
 	next      []int
+	steps     int
 	progress  uint8
 	grid      Grid
 	conflicts [81]uint16 // bitmask - uses bits 1 to 9 out of 16
@@ -84,6 +88,7 @@ func (s *solver) mark(cell int, value uint8) bool {
 	// Assign value.
 	s.conflicts[cell] = conflict
 	s.grid[cell] = value
+	s.steps++
 
 	// Apply constraints.
 	for _, related := range relations[cell] {
@@ -147,9 +152,11 @@ func (s *solver) search(callback func(*Grid) bool) bool {
 			copy = *s
 			if copy.mark(cell, value) {
 				if !copy.search(callback) {
+					s.steps = copy.steps
 					return false
 				}
 			}
+			s.steps = copy.steps
 		}
 	}
 	return true
@@ -178,19 +185,25 @@ func (s *solver) candidate() int {
 	return candidate
 }
 
-// solve is a helper for running a solver on a grid.
-func (g *Grid) solve(callback func(*Grid) bool) bool {
-	var s solver
-	s.init()
-	return s.load(g) && s.search(callback)
+// difficulty estimates how difficult the grid is.
+//
+// The value usually rounds down to an integer between 1 and 5, making it
+// suitable for a rating. 6 or more is possible but uncommon.
+func (s *solver) difficulty() float64 {
+	return math.Log(math.Max(float64(s.steps)/81, 1)) + 1
 }
 
-// Solve a grid. Return a slice of 0, 1, or several solutions.
-func Solve(g *Grid) []Grid {
+// Solve a grid. Return a slice of 0, 1, or several solutions, and an estimate
+// of how difficult the grid is.
+func Solve(g *Grid) ([]Grid, float64) {
+	var s solver
 	var grids []Grid
-	g.solve(func(g *Grid) bool {
-		grids = append(grids, *g)
-		return true
-	})
-	return grids
+	s.init()
+	if s.load(g) {
+		s.search(func(g *Grid) bool {
+			grids = append(grids, *g)
+			return true
+		})
+	}
+	return grids, s.difficulty()
 }

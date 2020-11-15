@@ -45,6 +45,9 @@ func TestProblem(t *testing.T) {
 	if resp.Code != 200 {
 		t.Errorf("GET %s: got response code %d, want 200", url, resp.Code)
 	}
+	if !strings.Contains(resp.Body, "★☆☆☆☆") {
+		t.Errorf("GET %s: difficulty not found in response", url)
+	}
 	if !strings.Contains(resp.Body, "<table><tr><td>5</td><td>3</td><td contenteditable></td><td contenteditable></td><td>7</td>") {
 		t.Errorf("GET %s: problem not found in response", url)
 	}
@@ -87,6 +90,9 @@ func TestSolution(t *testing.T) {
 
 	if resp.Code != 200 {
 		t.Errorf("GET %s: got response code %d, want 200", url, resp.Code)
+	}
+	if !strings.Contains(resp.Body, "★☆☆☆☆") {
+		t.Errorf("GET %s: difficulty not found in response", url)
 	}
 	if !strings.Contains(resp.Body, "<table><tr><td>5</td><td>3</td><td>4</td><td>6</td><td>7</td>") {
 		t.Errorf("GET %s: solution not found in response", url)

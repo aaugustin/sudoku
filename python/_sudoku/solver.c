@@ -1,6 +1,7 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+#include <math.h>
 #include <stdbool.h>
 
 #include "solver.h"
@@ -111,6 +112,7 @@ bool solver_mark(solver *s, size_t cell, uint8_t value) {
     // Assign value.
     s->conflicts[cell] = conflict;
     s->grid[cell] = value;
+    s->steps++;
 
     // Apply constraints.
     size_t i;
@@ -147,7 +149,7 @@ bool solver_mark(solver *s, size_t cell, uint8_t value) {
     return true;
 }
 
-static bool solver_load(solver *s, uint8_t grid[]) {
+bool solver_load(solver *s, uint8_t grid[]) {
     size_t cell;
     uint8_t value;
     for (cell = 0; cell < 81; cell++) {
@@ -204,18 +206,16 @@ bool solver_search(solver *s, bool callback(uint8_t[], void *), void *arg) {
             memcpy(&copy, s, sizeof(solver));
             if (solver_mark(&copy, cell, value)) {
                 if (!solver_search(&copy, callback, arg)) {
+                    s->steps = copy.steps;
                     return false;
                 }
             }
+            s->steps = copy.steps;
         }
     }
     return true;
 }
 
-// solve is a helper for running a solver on a grid.
-bool grid_solve(uint8_t grid[], bool callback(uint8_t[], void *), void *arg) {
-    solver s;
-    size_t next[81];
-    solver_init(&s, next);
-    return solver_load(&s, grid) && solver_search(&s, callback, arg);
+double solver_difficulty(solver *s) {
+    return log(fmax((double)s->steps / 81.0, 1.0)) + 1.0;
 }

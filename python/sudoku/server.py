@@ -44,10 +44,10 @@ td[contenteditable] {
     font-weight: bold;
     color: #666;
 }
-footer {
+header, footer {
     font-family: "Helvetica Neue", sans-serif;
     font-weight: 300;
-    color: #bbb;
+    color: #888;
     padding: 1em;
 }
 a {
@@ -70,13 +70,16 @@ a:hover {
     table    {
         font-size: 1.5em;
     }
-    footer {
+    header, footer {
         display: none;
     }
 }
         </style>
     </head>
     <body>
+        <header>
+            ${stars}
+        </header>
         ${display}
         <footer>
             <a href="/">New grid</a>
@@ -91,8 +94,10 @@ a:hover {
 )
 
 
-def render_grid(start_response, display, link):
+def render_grid(start_response, display, link, difficulty):
+    stars = min(int(difficulty), 5)
     body = TEMPLATE.substitute(
+        stars=stars * "★" + (5 - stars) * "☆",
         display=display._to_html().replace(
             "<td></td>",
             "<td contenteditable></td>",
@@ -146,7 +151,7 @@ def application(environ, start_response):
 
     path = environ["PATH_INFO"]
     if path == "/":
-        grid = generate()
+        grid, _ = generate()
         return render_redirect(
             start_response,
             f"/problem/{grid._to_line()}",
@@ -162,7 +167,7 @@ def application(environ, start_response):
                 "400 Bad Request",
                 str(exc),
             )
-        solutions = solve(grid)
+        solutions, difficulty = solve(grid)
         if not solutions:
             return render_error(
                 start_response,
@@ -175,7 +180,7 @@ def application(environ, start_response):
                 "400 Bad Request",
                 "multiple solutions found",
             )
-        return render_grid(start_response, grid, grid)
+        return render_grid(start_response, grid, grid, difficulty)
 
     elif path.startswith("/solution/"):
         problem = path[len("/solution/") :]
@@ -187,7 +192,7 @@ def application(environ, start_response):
                 "400 Bad Request",
                 str(exc),
             )
-        solutions = solve(grid)
+        solutions, difficulty = solve(grid)
         if not solutions:
             return render_error(
                 start_response,
@@ -200,7 +205,7 @@ def application(environ, start_response):
                 "400 Bad Request",
                 "multiple solutions found",
             )
-        return render_grid(start_response, solutions[0], grid)
+        return render_grid(start_response, solutions[0], grid, difficulty)
 
     return render_error(
         start_response,

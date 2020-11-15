@@ -113,12 +113,16 @@ static bool minimize_callback(uint8_t grid[], void *solved) {
 }
 
 // minimize turns a solution into a problem by removing values from cells.
-void minimize(uint8_t grid[]) {
+double minimize(uint8_t grid[]) {
     size_t order[81];
     size_t i;
     size_t cell;
     uint8_t value;
     bool solved;
+    solver s;
+    size_t next[81];
+    double difficulty = 0;
+
     // Clear cells until this creates multiple solutions.
     random_order(order);
     for (i = 0; i < 81; i++) {
@@ -126,10 +130,17 @@ void minimize(uint8_t grid[]) {
         value = grid[cell];
         grid[cell] = (uint8_t)0;
         solved = false;
-        if (!grid_solve(grid, &minimize_callback, (void *)&solved)) {
+        solver_init(&s, next);
+        if (solver_load(&s, grid) &&
+            solver_search(&s, &minimize_callback, (void *)&solved)) {
+            // Only one solution was found.
+            difficulty = solver_difficulty(&s);
+        } else {
             // More than one solution was found, restore cell.
             grid[cell] = value;
         }
         assert(solved);
     }
+
+    return difficulty;
 }

@@ -154,22 +154,28 @@ func solve(estimate bool, format string, input string, output string, multiple b
 	if err != nil {
 		return err
 	}
-	grids := sudoku.Solve(&grid)
+	grids, difficulty := sudoku.Solve(&grid)
 	for _, grid = range grids {
 		err = writeGrid(grid, format, output)
 		if err != nil {
 			return err
 		}
 	}
+	if estimate {
+		fmt.Fprintf(os.Stderr, "Difficulty: %.2f\n", difficulty)
+	}
 	return nil
 }
 
 // generate implements the generate command.
 func generate(estimate bool, format string, output string) error {
-	grid := sudoku.Generate()
+	grid, difficulty := sudoku.Generate()
 	err := writeGrid(grid, format, output)
 	if err != nil {
 		return err
+	}
+	if estimate {
+		fmt.Fprintf(os.Stderr, "Difficulty: %.2f\n", difficulty)
 	}
 	return nil
 }

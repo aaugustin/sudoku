@@ -44,14 +44,17 @@ func randomGrid() Grid {
 }
 
 // minimize turns a solution into a problem by removing values from cells.
-func (g *Grid) minimize() {
+func (g *Grid) minimize() float64 {
 	var value uint8
-	var solved bool
+	var difficulty float64
+
 	// Clear cells until this creates multiple solutions.
 	for _, cell := range rand.Perm(81) {
 		g[cell], value = uint8(0), g[cell]
-		solved = false
-		if !g.solve(func(_ *Grid) bool {
+		var s solver
+		var solved bool
+		s.init()
+		if s.load(g) && s.search(func(_ *Grid) bool {
 			// Another solution was already found, abort.
 			if solved {
 				return false
@@ -60,6 +63,9 @@ func (g *Grid) minimize() {
 			solved = true
 			return true
 		}) {
+			// Only one solution was found.
+			difficulty = s.difficulty()
+		} else {
 			// More than one solution was found, restore cell.
 			g[cell] = value
 		}
@@ -67,11 +73,13 @@ func (g *Grid) minimize() {
 			panic("minimize expects a valid grid")
 		}
 	}
+
+	return difficulty
 }
 
 // Generate creates a random problem.
-func Generate() Grid {
+func Generate() (Grid, float64) {
 	grid := randomGrid()
-	grid.minimize()
-	return grid
+	difficulty := grid.minimize()
+	return grid, difficulty
 }

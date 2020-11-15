@@ -2,6 +2,7 @@ package sudoku
 
 import (
 	"html/template"
+	"math"
 	"net/http"
 	"strings"
 )
@@ -18,6 +19,7 @@ func init() {
 }
 
 type Context struct {
+	Stars   string
 	Display template.HTML
 	Link    template.HTML
 }
@@ -61,10 +63,10 @@ td[contenteditable] {
     font-weight: bold;
     color: #666;
 }
-footer {
+header, footer {
     font-family: "Helvetica Neue", sans-serif;
     font-weight: 300;
-    color: #bbb;
+    color: #888;
     padding: 1em;
 }
 a {
@@ -87,13 +89,16 @@ a:hover {
     table    {
         font-size: 1.5em;
     }
-    footer {
+    header, footer {
         display: none;
     }
 }
         </style>
     </head>
     <body>
+        <header>
+            {{.Stars}}
+        </header>
         {{.Display}}
         <footer>
             <a href="/">New grid</a>
@@ -106,10 +111,12 @@ a:hover {
 </html>
 `))
 
-func renderGrid(w http.ResponseWriter, display *Grid, link *Grid) {
+func renderGrid(w http.ResponseWriter, display *Grid, link *Grid, difficulty float64) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
+	stars := int(math.Min(difficulty, 5.0))
 	c := Context{
+		Stars: strings.Repeat("★", stars) + strings.Repeat("☆", 5-stars),
 		Display: template.HTML(strings.ReplaceAll(
 			display.toHTML(),
 			"<td></td>",
@@ -132,7 +139,7 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleNewGrid(w http.ResponseWriter, r *http.Request) {
-	grid := Generate()
+	grid, _ := Generate()
 	http.Redirect(w, r, "/problem/"+grid.toLine(), 302)
 }
 
@@ -143,7 +150,7 @@ func handleProblem(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	solutions := Solve(&grid)
+	solutions, difficulty := Solve(&grid)
 	if len(solutions) == 0 {
 		http.Error(w, "no solution found", 400)
 		return
@@ -152,7 +159,7 @@ func handleProblem(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "multiple solutions found", 400)
 		return
 	}
-	renderGrid(w, &grid, &grid)
+	renderGrid(w, &grid, &grid, difficulty)
 }
 
 func handleSolution(w http.ResponseWriter, r *http.Request) {
@@ -162,7 +169,7 @@ func handleSolution(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	solutions := Solve(&grid)
+	solutions, difficulty := Solve(&grid)
 	if len(solutions) == 0 {
 		http.Error(w, "no solution found", 400)
 		return
@@ -171,7 +178,7 @@ func handleSolution(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "multiple solutions found", 400)
 		return
 	}
-	renderGrid(w, &solutions[0], &grid)
+	renderGrid(w, &solutions[0], &grid, difficulty)
 }
 
 // requireGet returns a HTTP 405 error for methods other than GET.

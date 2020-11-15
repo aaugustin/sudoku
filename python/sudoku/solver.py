@@ -1,4 +1,5 @@
 import collections
+import math
 
 from .grid import Grid
 
@@ -35,7 +36,19 @@ class Solver:
         self.choices = [set(range(1, 10)) for _ in range(81)]
         self.values = [0 for _ in range(81)]
         self.progress = 0
+        self.steps = 0
         self.next = collections.deque()
+
+    @property
+    def difficulty(self):
+        """
+        Estimate how difficult the grid is.
+
+        The value usually rounds down to an integer between 1 and 5, making it
+        suitable for a rating. 6 or more is possible but uncommon.
+
+        """
+        return math.log(max(self.steps / 81, 1)) + 1
 
     def copy(self):
         assert not self.next, "must process next before making copy"
@@ -43,6 +56,7 @@ class Solver:
         copy.choices = [choices.copy() for choices in self.choices]
         copy.values = self.values.copy()
         copy.progress = self.progress
+        copy.steps = self.steps
         copy.next = collections.deque()
         return copy
 
@@ -84,6 +98,7 @@ class Solver:
         # Assign value.
         self.choices[cell].clear()
         self.values[cell] = value
+        self.steps += 1
 
         # Apply constraints.
         for rel_cell in RELATIONS[cell]:
@@ -133,26 +148,25 @@ class Solver:
             copy = self.copy()
             if copy.mark(cell, value):
                 yield from copy.search()
-
-
-def _solve(grid):
-    """
-    Helper for running a solver on a grid.
-
-    """
-    solver = Solver()
-    if solver.load(grid):
-        yield from solver.search()
+            self.steps = copy.steps
 
 
 def solve(grid):
     """
     Solve a grid.
 
-    Return a list of 0, 1, or several solutions.
+    Return:
+
+    - a list of 0, 1, or several solutions;
+    - an estimate of how difficult the grid is.
 
     """
-    return list(_solve(grid))
+    solver = Solver()
+    if solver.load(grid):
+        solutions = list(solver.search())
+    else:
+        solutions = []
+    return solutions, solver.difficulty
 
 
 try:

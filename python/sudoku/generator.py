@@ -1,7 +1,7 @@
 import random
 
 from .grid import Grid
-from .solver import Solver, _solve
+from .solver import Solver
 
 __all__ = ["generate"]
 
@@ -36,10 +36,13 @@ def minimize(grid):
     Turn a solution into a problem by removing values from cells.
 
     """
+    difficulty = 0
     # Clear cells until this creates multiple solutions.
     for cell in random_order():
         grid.values[cell], value = 0, grid.values[cell]
-        solutions = _solve(grid)
+        solver = Solver()
+        assert solver.load(grid), "minimize expects a valid grid"
+        solutions = solver.search()
         try:
             next(solutions)
         except StopIteration:  # pragma: no cover
@@ -48,10 +51,11 @@ def minimize(grid):
             next(solutions)
         except StopIteration:
             # Only one solution was found.
-            pass
+            difficulty = solver.difficulty
         else:
             # More than one solution was found, restore cell.
             grid.values[cell] = value
+    return difficulty
 
 
 def generate():
@@ -60,8 +64,8 @@ def generate():
 
     """
     grid = random_grid()
-    minimize(grid)
-    return grid
+    difficulty = minimize(grid)
+    return grid, difficulty
 
 
 try:

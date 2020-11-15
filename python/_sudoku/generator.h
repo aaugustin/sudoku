@@ -3,6 +3,6 @@
 
 void random_grid(uint8_t grid[]);
 
-void minimize(uint8_t grid[]);
+double minimize(uint8_t grid[]);
 
 #endif
