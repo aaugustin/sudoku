@@ -5,9 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/aaugustin/sudoku/go/sudoku"
 )
@@ -293,5 +295,6 @@ func dispatch(args []string) int {
 }
 
 func main() {
+	rand.Seed(time.Now().UTC().UnixNano())
 	os.Exit(dispatch(os.Args))
 }
