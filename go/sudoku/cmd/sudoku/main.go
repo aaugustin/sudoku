@@ -224,7 +224,7 @@ func serve(host string, port int) error {
 // and 2 when parsing the command line fails.
 // It displays an informative error message to stderr before returning.
 func dispatch(args []string) int {
-	if len(os.Args) < 2 {
+	if len(args) < 2 {
 		usage()
 		return 2
 	}
@@ -232,10 +232,10 @@ func dispatch(args []string) int {
 	var problem string
 	var err error
 
-	switch os.Args[1] {
+	switch args[1] {
 
 	case "solve":
-		err = solveCmd.Parse(os.Args[2:])
+		err = solveCmd.Parse(args[2:])
 		if err != nil {
 			// Parse displays an error message
 			return 2
@@ -253,7 +253,7 @@ func dispatch(args []string) int {
 		}
 
 	case "generate":
-		err = generateCmd.Parse(os.Args[2:])
+		err = generateCmd.Parse(args[2:])
 		if err != nil {
 			// Parse displays an error message
 			return 2
@@ -265,7 +265,7 @@ func dispatch(args []string) int {
 		}
 
 	case "display":
-		err = displayCmd.Parse(os.Args[2:])
+		err = displayCmd.Parse(args[2:])
 		if err != nil {
 			// Parse displays an error message
 			return 2
@@ -283,7 +283,7 @@ func dispatch(args []string) int {
 		}
 
 	case "serve":
-		err = serveCmd.Parse(os.Args[2:])
+		err = serveCmd.Parse(args[2:])
 		if err != nil {
 			// Parse displays an error message
 			return 2
