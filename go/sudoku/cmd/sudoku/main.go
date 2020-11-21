@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -13,6 +14,11 @@ import (
 
 	"github.com/aaugustin/sudoku/go/sudoku"
 )
+
+// All output goes to these variables, which can be replaced for testing.
+var stdin io.Reader = os.Stdin
+var stdout io.Writer = os.Stdout
+var stderr io.Writer = os.Stderr
 
 var solveCmd = flag.NewFlagSet("solve", flag.ContinueOnError)
 var generateCmd = flag.NewFlagSet("generate", flag.ContinueOnError)
@@ -97,7 +103,7 @@ func readGrid(input string, problem string) (sudoku.Grid, error) {
 
 	} else if input == "-" {
 		// read problem from standard input
-		data, err := ioutil.ReadAll(os.Stdin)
+		data, err := ioutil.ReadAll(stdin)
 		if err != nil {
 			return grid, fmt.Errorf("cannot read problem from stdin: %s", err)
 		}
@@ -134,7 +140,7 @@ func writeGrid(grid sudoku.Grid, format string, output string) error {
 
 	if output == "-" {
 		// write problem to standard output
-		_, err := os.Stdout.Write([]byte(problem))
+		_, err := stdout.Write([]byte(problem))
 		if err != nil {
 			return fmt.Errorf("cannot write problem to stdout: %s", err)
 		}
@@ -178,7 +184,7 @@ func solve(estimate bool, format string, input string, output string, multiple b
 		}
 	}
 	if estimate {
-		fmt.Fprintf(os.Stderr, "Difficulty: %.2f\n", difficulty)
+		fmt.Fprintf(stderr, "Difficulty: %.2f\n", difficulty)
 	}
 	return nil
 }
@@ -191,7 +197,7 @@ func generate(estimate bool, format string, output string) error {
 		return err
 	}
 	if estimate {
-		fmt.Fprintf(os.Stderr, "Difficulty: %.2f\n", difficulty)
+		fmt.Fprintf(stderr, "Difficulty: %.2f\n", difficulty)
 	}
 	return nil
 }
@@ -224,6 +230,7 @@ func serve(host string, port int) error {
 // and 2 when parsing the command line fails.
 // It displays an informative error message to stderr before returning.
 func dispatch(args []string) int {
+	flag.CommandLine.SetOutput(stderr)
 	if len(args) < 2 {
 		usage()
 		return 2
@@ -235,6 +242,7 @@ func dispatch(args []string) int {
 	switch args[1] {
 
 	case "solve":
+		solveCmd.SetOutput(stderr)
 		err = solveCmd.Parse(args[2:])
 		if err != nil {
 			// Parse displays an error message
@@ -253,6 +261,7 @@ func dispatch(args []string) int {
 		}
 
 	case "generate":
+		generateCmd.SetOutput(stderr)
 		err = generateCmd.Parse(args[2:])
 		if err != nil {
 			// Parse displays an error message
@@ -265,6 +274,7 @@ func dispatch(args []string) int {
 		}
 
 	case "display":
+		displayCmd.SetOutput(stderr)
 		err = displayCmd.Parse(args[2:])
 		if err != nil {
 			// Parse displays an error message
@@ -283,6 +293,7 @@ func dispatch(args []string) int {
 		}
 
 	case "serve":
+		serveCmd.SetOutput(stderr)
 		err = serveCmd.Parse(args[2:])
 		if err != nil {
 			// Parse displays an error message
