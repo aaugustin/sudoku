@@ -267,6 +267,10 @@ func dispatch(args []string) int {
 			// Parse displays an error message
 			return 2
 		}
+		if len(generateCmd.Args()) > 0 {
+			fmt.Fprintln(generateCmd.Output(), "unexpected arguments: "+strings.Join(generateCmd.Args(), ", "))
+			return 2
+		}
 		err = generate(estimate, format, output)
 		if err != nil {
 			fmt.Fprintln(generateCmd.Output(), err)
@@ -297,6 +301,10 @@ func dispatch(args []string) int {
 		err = serveCmd.Parse(args[2:])
 		if err != nil {
 			// Parse displays an error message
+			return 2
+		}
+		if len(serveCmd.Args()) > 0 {
+			fmt.Fprintln(serveCmd.Output(), "unexpected arguments: "+strings.Join(serveCmd.Args(), ", "))
 			return 2
 		}
 		err = serve(host, port)
