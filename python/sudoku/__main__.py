@@ -238,9 +238,7 @@ def serve_cmd(host, port):
     from .server import application
 
     with make_server(host, port, application) as server:
-        if host == "":
-            host = "localhost"
-        print(f"Serving on http://{host}:{port}/")
+        print("Serving on http://{}:{}/".format(*server.server_address))
         try:
             server.serve_forever()
         except KeyboardInterrupt:

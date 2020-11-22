@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -31,7 +32,7 @@ var input string
 var output string
 var multiple bool
 var host string
-var port int
+var port string
 
 func init() {
 	// Bind appropriate flags to variables for each command.
@@ -61,9 +62,9 @@ func init() {
 	displayCmd.StringVar(&output, "o", "-", "shorthand for `output`")
 	displayCmd.StringVar(&output, "output", "-", "write solution to this `file`; - for stdout")
 
-	serveCmd.StringVar(&host, "host", "", "hostname or IP address on which to listen")
-	serveCmd.IntVar(&port, "p", 29557, "TCP port on which to listen")
-	serveCmd.IntVar(&port, "port", 29557, "TCP port on which to listen")
+	serveCmd.StringVar(&host, "host", "localhost", "hostname or IP address on which to listen")
+	serveCmd.StringVar(&port, "p", "29557", "TCP port on which to listen")
+	serveCmd.StringVar(&port, "port", "29557", "TCP port on which to listen")
 }
 
 func usage() {
@@ -216,13 +217,14 @@ func display(format string, input string, output string, problem string) error {
 }
 
 // serve implements the serve command.
-func serve(host string, port int) error {
-	address := fmt.Sprintf("%s:%d", host, port)
-	if host == "" {
-		host = "localhost"
+func serve(host string, port string) error {
+	address := net.JoinHostPort(host, port)
+	listener, err := net.Listen("tcp", address)
+	if err != nil {
+		return err
 	}
-	fmt.Printf("Serving on http://%s:%d/\n", host, port)
-	return http.ListenAndServe(address, sudoku.Handler)
+	fmt.Printf("Serving on http://%s/\n", listener.Addr().String())
+	return http.Serve(listener, sudoku.Handler)
 }
 
 // dispatch parses a command line and executes the requested command.
