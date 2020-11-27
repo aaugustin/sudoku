@@ -228,7 +228,7 @@ def display_cmd(format, input, output, problem):
     write_grid(grid, format, output)
 
 
-def serve_cmd(host, port):
+def serve_cmd(host, port):  # pragma: no cover
     """
     Implement the serve command.
 
@@ -254,11 +254,11 @@ def main(args=None):
     namespace = parser.parse_args(args)
     kwargs = vars(namespace)
     # Make problem and --stdin arguments mutually exclusive.
-    if kwargs.get("problem") is not None and kwargs["input"].fileno() != 0:
+    if kwargs.get("problem") is not None and kwargs["input"] != sys.stdin:
         parser.error("argument --input: not allowed with argument problem")
     command = kwargs.pop("command")
     globals()[f"{command}_cmd"](**kwargs)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

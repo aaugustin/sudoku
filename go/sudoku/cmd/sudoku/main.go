@@ -90,7 +90,7 @@ func parseArgument(input string, args []string) (string, error) {
 		}
 		return args[0], nil
 	default:
-		return "", errors.New("multiple arguments provided: " + strings.Join(args, ", "))
+		return "", errors.New("unexpected arguments: " + strings.Join(args[1:], ", "))
 	}
 
 }
@@ -100,7 +100,7 @@ func readGrid(input string, problem string) (sudoku.Grid, error) {
 	var grid sudoku.Grid
 
 	if problem != "" {
-		// road problem from command-line argument
+		// read problem from command-line argument
 
 	} else if input == "-" {
 		// read problem from standard input
@@ -150,7 +150,7 @@ func writeGrid(grid sudoku.Grid, format string, output string) error {
 		// write problem to a file
 		err := ioutil.WriteFile(output, []byte(problem), 0644)
 		if err != nil {
-			return fmt.Errorf("cannot write to file: %s", err)
+			return fmt.Errorf("cannot write problem to file: %s", err)
 		}
 	}
 
@@ -320,7 +320,7 @@ func dispatch(args []string) int {
 		return 0
 
 	default:
-		fmt.Fprintln(displayCmd.Output(), "command not supported:", args[1])
+		fmt.Fprintln(flag.CommandLine.Output(), "command not supported:", args[1])
 		usage()
 		return 2
 

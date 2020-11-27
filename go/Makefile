@@ -7,10 +7,10 @@ build:
 	cd sudoku && go build ./cmd/sudoku
 
 test:
-	cd sudoku && go test .
+	cd sudoku && go test . ./cmd/sudoku
 
 coverage:
-	cd sudoku && go test -coverprofile=cover.out .
+	cd sudoku && go test -coverprofile=cover.out . ./cmd/sudoku
 	cd sudoku && go tool cover -html=cover.out
 
 benchmark:
