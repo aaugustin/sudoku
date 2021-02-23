@@ -47,13 +47,16 @@ func randomGrid() Grid {
 func (g *Grid) minimize() float64 {
 	var value uint8
 	var difficulty float64
+	var next_arr [81]int
 
 	// Clear cells until this creates multiple solutions.
 	for _, cell := range rand.Perm(81) {
 		g[cell], value = uint8(0), g[cell]
 		var s solver
 		var grids []Grid
-		s.init()
+		// Reuse the same underlying array at every iteration instead of allocating
+		// a new one with s.init(). There's no need to reset the content.
+		s.next = next_arr[:0]
 		if !s.load(g) {
 			panic("minimize expects a valid grid")
 		}
