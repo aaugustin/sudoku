@@ -186,10 +186,35 @@ static size_t solver_candidate(solver *s) {
     return candidate;
 }
 
-bool solver_search(solver *s, bool callback(uint8_t[], void *), void *arg) {
+static bool record_solution(PyObject *grids, uint8_t values[]) {
+    // Re-acquire the GIL, which is released when solver_search runs.
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+
+    PyObject *grid = Grid_AsPyObject(values);
+    if (grid == NULL) {
+        PyGILState_Release(gstate);
+        return false;
+    }
+    if (PyList_Append(grids, grid) < 0) {
+        PyGILState_Release(gstate);
+        return false;
+    }
+
+    PyGILState_Release(gstate);
+    return true;
+}
+
+// Return the number of solutions found, or -1 if an error occurred.
+int solver_search(solver *s, PyObject *grids, bool multiple) {
     // If the grid is complete, there is a solution in this branch.
     if (s->progress == 81) {
-        return callback(s->grid, arg);
+        if (grids != NULL) {
+            if (!record_solution(grids, s->grid)) {
+                return -1;
+            };
+        }
+        return 1;
     }
 
     // Since next is empty, sharing the underlying array with a copy is OK.
@@ -202,19 +227,28 @@ bool solver_search(solver *s, bool callback(uint8_t[], void *), void *arg) {
     solver copy;
     uint8_t value;
     size_t cell = solver_candidate(s);
+    int solutions = 0;
+    int new_solutions;
     for (value = 1; value < 10; value++) {
         if ((s->conflicts[cell] & ((uint16_t)1 << value)) == 0) {
             memcpy(&copy, s, sizeof(solver));
             if (solver_mark(&copy, cell, value)) {
-                if (!solver_search(&copy, callback, arg)) {
+                new_solutions = solver_search(&copy, grids, multiple);
+                if (new_solutions < 0) {
                     s->steps = copy.steps;
-                    return false;
+                    return new_solutions;
+                }
+                solutions += new_solutions;
+                // Abort search when two solutions are found and we don't look for more.
+                if (!multiple && solutions > 1) {
+                    s->steps = copy.steps;
+                    return solutions;
                 }
             }
             s->steps = copy.steps;
         }
     }
-    return true;
+    return solutions;
 }
 
 double solver_difficulty(solver *s) {

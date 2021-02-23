@@ -59,7 +59,7 @@ func TestSolve(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		gotSolutions, gotDifficulty := Solve(&test.input)
+		gotSolutions, gotDifficulty := Solve(&test.input, true)
 		if len(gotSolutions) != len(test.wantSolutions) {
 			t.Errorf("%v: expected %d solution(s), got %d", test.input, len(test.wantSolutions), len(gotSolutions))
 			continue
@@ -110,6 +110,6 @@ func BenchmarkSolve(b *testing.B) {
 	}
 	for n := 0; n < b.N; n++ {
 		grid := grids[n%len(grids)]
-		Solve(&grid)
+		Solve(&grid, false)
 	}
 }

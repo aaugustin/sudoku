@@ -7,28 +7,11 @@
 #include "solver.h"
 #include "utils.h"
 
-static bool solve_callback(uint8_t values[], void *grids) {
-    PyGILState_STATE gstate;
-    gstate = PyGILState_Ensure();
-
-    PyObject *grid = Grid_AsPyObject(values);
-    if (grid == NULL) {
-        PyGILState_Release(gstate);
-        return false;
-    }
-    if (PyList_Append((PyObject *)grids, grid) < 0) {
-        PyGILState_Release(gstate);
-        return false;
-    }
-
-    PyGILState_Release(gstate);
-    return true;
-}
-
 static PyObject *
 _sudoku_solve(PyObject *self, PyObject *args, PyObject *kwds) {
-    static char *kwlist[] = {"grid", NULL};
+    static char *kwlist[] = {"grid", "multiple", NULL};
     PyObject *grid;
+    bool multiple = false;
     uint8_t values[81];
     PyObject *grids;
     solver s;
@@ -37,7 +20,7 @@ _sudoku_solve(PyObject *self, PyObject *args, PyObject *kwds) {
     PyObject *result;
 
     // borrows a reference to grid
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &grid)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|p", kwlist, &grid, &multiple)) {
         return NULL;
     }
 
@@ -53,14 +36,13 @@ _sudoku_solve(PyObject *self, PyObject *args, PyObject *kwds) {
     Py_BEGIN_ALLOW_THREADS
     solver_init(&s, next);
     if (solver_load(&s, values)) {
-        solver_search(&s, solve_callback, grids);
+        if (solver_search(&s, grids, multiple) < 0) {
+            Py_DECREF(grids);
+            return NULL;
+        }
     }
     Py_END_ALLOW_THREADS
-    // solve_callback may cause a Python error.
-    if (PyErr_Occurred()) {
-        Py_DECREF(grids);
-        return NULL;
-    }
+
     difficulty = solver_difficulty(&s);
 
     result = Py_BuildValue("Od", grids, difficulty);
@@ -96,7 +78,7 @@ _sudoku_generate(PyObject *self, PyObject *args) {
 
 static PyMethodDef _sudoku_methods[] = {
     {"solve",  (PyCFunction)_sudoku_solve, METH_VARARGS | METH_KEYWORDS,
-     PyDoc_STR("Solve a grid.\n\nReturn a list of 0, 1, or several solutions.")},
+     PyDoc_STR("Solve a grid.")},
     {"generate", (PyCFunction)_sudoku_generate, METH_VARARGS,
      PyDoc_STR("Create a random problem.")},
     {NULL, NULL, 0, NULL}

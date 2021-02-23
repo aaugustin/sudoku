@@ -52,25 +52,20 @@ func (g *Grid) minimize() float64 {
 	for _, cell := range rand.Perm(81) {
 		g[cell], value = uint8(0), g[cell]
 		var s solver
-		var solved bool
+		var grids []Grid
 		s.init()
-		if s.load(g) && s.search(func(_ *Grid) bool {
-			// Another solution was already found, abort.
-			if solved {
-				return false
-			}
-			// First solution is found, continue.
-			solved = true
-			return true
-		}) {
+		if !s.load(g) {
+			panic("minimize expects a valid grid")
+		}
+		grids = s.search(grids, false)
+		if len(grids) == 0 {
+			panic("minimize expects a valid grid")
+		} else if len(grids) == 1 {
 			// Only one solution was found.
 			difficulty = s.difficulty()
 		} else {
 			// More than one solution was found, restore cell.
 			g[cell] = value
-		}
-		if !solved {
-			panic("minimize expects a valid grid")
 		}
 	}
 

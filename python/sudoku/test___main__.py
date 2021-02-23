@@ -95,7 +95,7 @@ class TestMain(unittest.TestCase):
             (["solve", "-i", input_file, "-o", output_file], "", 0, "", ""),  # see gross hack below
 
             # Runtime errors
-            (["solve", problem2], "", 1, "", "^multiple solutions found (4)\n$"),
+            (["solve", problem2], "", 1, "", "^multiple solutions found\n$"),
             (["solve", problem3], "", 1, "", "^no solution found\n$"),
             (["solve", "-m", problem3], "", 1, "", "^no solution found\n$"),
             (["solve", "ABC"], "", 1, "", "cannot read problem: cell contains invalid value"),

@@ -120,7 +120,7 @@ func TestSolve(t *testing.T) {
 	checkFileContents(t, []string{"sudoku", "solve", "-i", inputFile, "-o", outputFile}, outputFile, solutionConsole)
 
 	// Runtime errors
-	testDispatch(t, []string{"sudoku", "solve", problem2}, "", 1, "", "^multiple solutions found (6)\n$")
+	testDispatch(t, []string{"sudoku", "solve", problem2}, "", 1, "", "^multiple solutions found\n$")
 	testDispatch(t, []string{"sudoku", "solve", problem3}, "", 1, "", "^no solution found\n$")
 	testDispatch(t, []string{"sudoku", "solve", "-m", problem3}, "", 1, "", "^no solution found\n$")
 	testDispatch(t, []string{"sudoku", "solve", "ABC"}, "", 1, "", "cannot read problem: cell contains invalid value")

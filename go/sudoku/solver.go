@@ -124,16 +124,16 @@ func (s *solver) mark(cell int, value uint8) bool {
 
 // search finds all solutions.
 //
-// Each solution is reported by calling callback.
+// It appends solutions to the grids slice and returns that slice.
 //
-// If callback returns true, search continues and eventually returns true when
-// the search completes.
-//
-// If callback returns false, search aborts and returns false immediately.
-func (s *solver) search(callback func(*Grid) bool) bool {
+// When multiple is false, search aborts as soon as two solutions are found.
+// This is useful to know whether there's zero, one, or several solutions.
+// When multiple is true, it looks for all solutions.
+func (s *solver) search(grids []Grid, multiple bool) []Grid {
 	// If the grid is complete, there is a solution in this branch.
 	if s.progress == 81 {
-		return callback(&s.grid)
+		grids = append(grids, s.grid)
+		return grids
 	}
 
 	// Since s.next is empty, sharing the underlying array with a copy is OK.
@@ -151,15 +151,17 @@ func (s *solver) search(callback func(*Grid) bool) bool {
 		if s.conflicts[cell]&(1<<value) == 0 {
 			copy = *s
 			if copy.mark(cell, value) {
-				if !copy.search(callback) {
+				grids = copy.search(grids, multiple)
+				// Abort search when two solutions are found and we don't look for more.
+				if !multiple && len(grids) > 1 {
 					s.steps = copy.steps
-					return false
+					break
 				}
 			}
 			s.steps = copy.steps
 		}
 	}
-	return true
+	return grids
 }
 
 // candidate find the cell with the most conflicts.
@@ -193,17 +195,19 @@ func (s *solver) difficulty() float64 {
 	return math.Log(math.Max(float64(s.steps)/81, 1)) + 1
 }
 
-// Solve a grid. Return a slice of 0, 1, or several solutions, and an estimate
-// of how difficult the grid is.
-func Solve(g *Grid) ([]Grid, float64) {
+// Solve a grid.
+//
+// Return a slice of 0, 1, or several solutions, and an estimate of how
+// difficult the grid is.
+//
+// When multiple is false and there are multiple solutions, stop searching as
+// soon as two solutions are found.
+func Solve(g *Grid, multiple bool) ([]Grid, float64) {
 	var s solver
 	var grids []Grid
 	s.init()
 	if s.load(g) {
-		s.search(func(g *Grid) bool {
-			grids = append(grids, *g)
-			return true
-		})
+		grids = s.search(grids, multiple)
 	}
 	return grids, s.difficulty()
 }

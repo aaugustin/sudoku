@@ -151,19 +151,24 @@ class Solver:
             self.steps = copy.steps
 
 
-def solve(grid):
+def solve(grid, multiple=False):
     """
     Solve a grid.
 
-    Return:
+    Return a list of 0, 1, or several solutions and an estimate of how
+    difficult the grid is.
 
-    - a list of 0, 1, or several solutions;
-    - an estimate of how difficult the grid is.
+    When multiple is false and there are multiple solutions, stop searching as
+    soon as two solutions are found.
 
     """
     solver = Solver()
     if solver.load(grid):
-        solutions = list(solver.search())
+        solutions = []
+        for index, solution in enumerate(solver.search()):
+            solutions.append(solution)
+            if not multiple and index > 0:
+                break
     else:
         solutions = []
     return solutions, solver.difficulty

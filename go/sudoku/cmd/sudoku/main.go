@@ -163,7 +163,7 @@ func solve(estimate bool, format string, input string, output string, multiple b
 	if err != nil {
 		return err
 	}
-	solutions, difficulty := sudoku.Solve(&grid)
+	solutions, difficulty := sudoku.Solve(&grid, multiple)
 	if len(solutions) == 1 {
 		grid = solutions[0]
 		err = writeGrid(grid, format, output)
@@ -181,7 +181,7 @@ func solve(estimate bool, format string, input string, output string, multiple b
 				}
 			}
 		} else {
-			return fmt.Errorf("multiple solutions found (%d)", len(solutions))
+			return errors.New("multiple solutions found")
 		}
 	}
 	if estimate {

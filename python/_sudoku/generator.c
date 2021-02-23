@@ -102,25 +102,16 @@ void random_grid(uint8_t grid[]) {
     memcpy(grid, s.grid, sizeof(s.grid));
 }
 
-static bool minimize_callback(uint8_t grid[], void *solved) {
-    // Another solution was already found, abort.
-    if (*(bool *)solved) {
-        return false;
-    }
-    // First solution is found, continue.
-    *(bool *)solved = true;
-    return true;
-}
-
 // minimize turns a solution into a problem by removing values from cells.
 double minimize(uint8_t grid[]) {
     size_t order[81];
     size_t i;
     size_t cell;
     uint8_t value;
-    bool solved;
     solver s;
     size_t next[81];
+    bool loaded;
+    int solutions;
     double difficulty = 0;
 
     // Clear cells until this creates multiple solutions.
@@ -129,17 +120,18 @@ double minimize(uint8_t grid[]) {
         cell = order[i];
         value = grid[cell];
         grid[cell] = (uint8_t)0;
-        solved = false;
         solver_init(&s, next);
-        if (solver_load(&s, grid) &&
-            solver_search(&s, &minimize_callback, (void *)&solved)) {
+        loaded = solver_load(&s, grid);
+        assert(loaded);
+        solutions = solver_search(&s, NULL, false);
+        assert(solutions > 0);
+        if (solutions == 1) {
             // Only one solution was found.
             difficulty = solver_difficulty(&s);
         } else {
             // More than one solution was found, restore cell.
             grid[cell] = value;
         }
-        assert(solved);
     }
 
     return difficulty;

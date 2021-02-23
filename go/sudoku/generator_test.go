@@ -26,7 +26,7 @@ func TestGenerate(t *testing.T) {
 			t.Errorf("seed = %d: expected between 50 and 65 zeroes, got %d", seed, zeroCount)
 		}
 
-		solutions, solveDifficulty := Solve(&grid)
+		solutions, solveDifficulty := Solve(&grid, false)
 		if len(solutions) != 1 {
 			t.Errorf("seed = %d: more than one solution", seed)
 		}

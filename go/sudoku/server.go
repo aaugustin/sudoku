@@ -150,7 +150,7 @@ func handleProblem(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	solutions, difficulty := Solve(&grid)
+	solutions, difficulty := Solve(&grid, false)
 	if len(solutions) == 0 {
 		http.Error(w, "no solution found", 400)
 		return
@@ -169,7 +169,7 @@ func handleSolution(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	solutions, difficulty := Solve(&grid)
+	solutions, difficulty := Solve(&grid, false)
 	if len(solutions) == 0 {
 		http.Error(w, "no solution found", 400)
 		return

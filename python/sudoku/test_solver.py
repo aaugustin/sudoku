@@ -55,6 +55,6 @@ class TestSolve(unittest.TestCase):
         # fmt: on
         for input, expected_solution, expected_difficulty in tests:
             with self.subTest(input=input):
-                actual_solution, actual_difficulty = solve(input)
+                actual_solution, actual_difficulty = solve(input, multiple=True)
                 self.assertEqual(actual_solution, expected_solution)
                 self.assertAlmostEqual(actual_difficulty, expected_difficulty, 2)

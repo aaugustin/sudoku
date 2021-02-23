@@ -27,7 +27,7 @@ bool solver_mark(solver *s, size_t cell, uint8_t value);
 
 bool solver_load(solver *s, uint8_t grid[]);
 
-bool solver_search(solver *s, bool callback(uint8_t[], void *), void *arg);
+int solver_search(solver *s, PyObject *grids, bool multiple);
 
 double solver_difficulty(solver *s);
 
