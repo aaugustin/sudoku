@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #include "solver.h"
+#include "utils.h"
 
 static size_t relations[81][20] = {
     { 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,18,19,20,27,36,45,54,63,72},

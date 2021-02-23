@@ -1,6 +1,8 @@
 #ifndef SUDOKU_SOLVER_H
 #define SUDOKU_SOLVER_H
 
+#include <stdbool.h>
+
 // solver implements the Sudoku solving algorithm.
 //
 // Using a solver properly takes three steps.

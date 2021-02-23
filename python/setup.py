@@ -17,9 +17,10 @@ setup(
         Extension(
             "_sudoku",
             [
+                "_sudoku/generator.c",
                 "_sudoku/module.c",
                 "_sudoku/solver.c",
-                "_sudoku/generator.c",
+                "_sudoku/utils.c",
             ],
         )
     ],
