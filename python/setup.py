@@ -24,4 +24,7 @@ setup(
             ],
         )
     ],
+    package_data={
+        "sudoku": ["assets/*"],
+    },
 )

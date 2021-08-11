@@ -1,8 +1,11 @@
+import pathlib
 import string
 
 from .generator import generate
 from .grid import Grid
 from .solver import solve
+
+ASSETS_DIR = pathlib.Path(__file__).parent / "assets"
 
 TEMPLATE = string.Template(
     """<!DOCTYPE html>
@@ -11,69 +14,9 @@ TEMPLATE = string.Template(
         <meta name="viewport" content="initial-scale=1">
         <title>Sudoku</title>
         <style>
-html {
-    height: 100%;
-}
-body {
-    margin: 0;
-    min-height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-evenly;
-}
-table {
-    border: 2px solid #000;
-    border-collapse: collapse;
-}
-td  {
-    width: 2em;
-    height: 2em;
-    border: 1px solid #bbb;
-    text-align: center;
-    vertical-align: middle;
-    line-height: 1;
-}
-tr:nth-child(3n) td {
-    border-bottom-color: #000;
-}
-td:nth-child(3n) {
-    border-right-color: #000;
-}
-td[contenteditable] {
-    font-weight: bold;
-    color: #666;
-}
-header, footer {
-    font-family: "Helvetica Neue", sans-serif;
-    font-weight: 300;
-    color: #888;
-    padding: 1em;
-}
-a {
-    color: #888;
-}
-a:hover {
-    color: #444;
-}
-@media screen and (min-width: 480px) {
-    table {
-        font-size: 1.5em;
-    }
-}
-@media screen and (min-width: 720px) {
-    table  {
-        font-size: 2em;
-    }
-}
-@media print {
-    table    {
-        font-size: 1.5em;
-    }
-    header, footer {
-        display: none;
-    }
-}
+"""
+    + (ASSETS_DIR / "style.css").read_text()
+    + """
         </style>
     </head>
     <body>
@@ -88,6 +31,11 @@ a:hover {
             -
             <a href="/solution/${link}">Solution</a>
         </footer>
+        <script>
+"""
+    + (ASSETS_DIR / "script.js").read_text()
+    + """
+        </script>
     </body>
 </html>
 """
@@ -100,7 +48,7 @@ def render_grid(start_response, display, link, difficulty):
         stars=stars * "★" + (5 - stars) * "☆",
         display=display._to_html().replace(
             "<td></td>",
-            "<td contenteditable></td>",
+            "<td contenteditable><br></td>",
         ),
         link=link._to_line(),
     ).encode()
