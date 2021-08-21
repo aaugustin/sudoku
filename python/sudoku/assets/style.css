@@ -31,6 +31,13 @@ td[contenteditable] {
     font-weight: bold;
     color: #666;
 }
+td[contenteditable].temporary {
+    font-size: 62.5%;
+    vertical-align: bottom;
+}
+td[contenteditable].invalid {
+    color: #c33;
+}
 header, footer {
     font-family: "Helvetica Neue", sans-serif;
     font-weight: 300;
