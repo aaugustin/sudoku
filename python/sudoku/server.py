@@ -15,7 +15,7 @@ TEMPLATE = string.Template(
         <title>Sudoku</title>
         <style>
 """
-    + (ASSETS_DIR / "style.css").read_text()
+    + (ASSETS_DIR / "style.css").read_text().replace("$", "$$")
     + """
         </style>
     </head>
@@ -33,7 +33,7 @@ TEMPLATE = string.Template(
         </footer>
         <script>
 """
-    + (ASSETS_DIR / "script.js").read_text()
+    + (ASSETS_DIR / "script.js").read_text().replace("$", "$$")
     + """
         </script>
     </body>
