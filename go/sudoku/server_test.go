@@ -48,7 +48,7 @@ func TestProblem(t *testing.T) {
 	if !strings.Contains(resp.Body, "★☆☆☆☆") {
 		t.Errorf("GET %s: difficulty not found in response", url)
 	}
-	if !strings.Contains(resp.Body, "<table><tr><td>5</td><td>3</td><td contenteditable></td><td contenteditable></td><td>7</td>") {
+	if !strings.Contains(resp.Body, "<table><tr><td>5</td><td>3</td><td contenteditable enterkeyhint=\"done\" inputmode=\"numeric\" spellcheck=\"false\"><br></td><td contenteditable enterkeyhint=\"done\" inputmode=\"numeric\" spellcheck=\"false\"><br></td><td>7</td>") {
 		t.Errorf("GET %s: problem not found in response", url)
 	}
 }

@@ -48,7 +48,7 @@ def render_grid(start_response, display, link, difficulty):
         stars=stars * "★" + (5 - stars) * "☆",
         display=display._to_html().replace(
             "<td></td>",
-            "<td contenteditable><br></td>",
+            '<td contenteditable enterkeyhint="done" inputmode="numeric" spellcheck="false"><br></td>',
         ),
         link=link._to_line(),
     ).encode()

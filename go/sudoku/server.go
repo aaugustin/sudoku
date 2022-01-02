@@ -68,7 +68,7 @@ func renderGrid(w http.ResponseWriter, display *Grid, link *Grid, difficulty flo
 		Display: template.HTML(strings.ReplaceAll(
 			display.toHTML(),
 			"<td></td>",
-			"<td contenteditable><br></td>",
+			"<td contenteditable enterkeyhint=\"done\" inputmode=\"numeric\" spellcheck=\"false\"><br></td>",
 		)),
 		Link: template.HTML(link.toLine()),
 	}

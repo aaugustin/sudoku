@@ -47,7 +47,13 @@ class TestServer(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn("★☆☆☆☆", body)
         self.assertIn(
-            "<table><tr><td>5</td><td>3</td><td contenteditable></td><td contenteditable></td><td>7</td>",
+            "<table>"
+            "<tr>"
+            "<td>5</td>"
+            "<td>3</td>"
+            '<td contenteditable enterkeyhint="done" inputmode="numeric" spellcheck="false"><br></td>'
+            '<td contenteditable enterkeyhint="done" inputmode="numeric" spellcheck="false"><br></td>'
+            "<td>7</td>",
             body,
         )
 
