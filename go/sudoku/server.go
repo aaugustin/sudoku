@@ -16,6 +16,7 @@ func init() {
 	mux.HandleFunc("/", handleRoot)
 	mux.HandleFunc("/problem/", handleProblem)
 	mux.HandleFunc("/solution/", handleSolution)
+	mux.HandleFunc("/healthz", handleHealthz)
 	Handler = requireGet(mux)
 }
 
@@ -127,6 +128,10 @@ func handleSolution(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	renderGrid(w, &solutions[0], &grid, difficulty)
+}
+
+func handleHealthz(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("OK\n"))
 }
 
 // requireGet returns a HTTP 405 error for methods other than GET.
