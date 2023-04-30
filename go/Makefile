@@ -1,10 +1,10 @@
 .PHONY: style build test coverage benchmark clean
 
-style:
-	cd sudoku && go fmt . ./cmd/sudoku
-
 build:
 	cd sudoku && go build ./cmd/sudoku
+
+style:
+	cd sudoku && go fmt . ./cmd/sudoku
 
 test:
 	cd sudoku && go test . ./cmd/sudoku
