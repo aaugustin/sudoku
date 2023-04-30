@@ -1,4 +1,38 @@
 document.addEventListener("DOMContentLoaded", function () {
+    const getNextCell = {
+        left: function (cell) {
+            return cell.previousElementSibling;
+        },
+        right: function (cell) {
+            return cell.nextElementSibling;
+        },
+        up: function (cell) {
+            const row = cell.parentElement.previousElementSibling;
+            const idx = Array.from(cell.parentElement.childNodes).indexOf(cell);
+            return row !== null ? row.childNodes[idx] : null;
+        },
+        down: function (cell) {
+            const row = cell.parentElement.nextElementSibling;
+            const idx = Array.from(cell.parentElement.childNodes).indexOf(cell);
+            return row !== null ? row.childNodes[idx] : null;
+        },
+    };
+
+    // Move focus in the grid.
+
+    function moveFocus(cell, direction) {
+        while (true) {
+            cell = getNextCell[direction](cell);
+            if (cell === null) {
+                return;
+            }
+            if (cell.isContentEditable) {
+                cell.focus();
+                return;
+            }
+        }
+    }
+
     // If a <td contenteditable> element contains nothing, its height
     // collapses to zero and the cursor isn't vertically centered anymore.
     // Add a line break, which the browser ignores, to avoid this problem.
@@ -11,27 +45,62 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    document.querySelector("table").addEventListener("input", function (event) {
-        fixEmptyCell(event.target);
-    });
+    // Clear the content of a <td contenteditable>.
 
-    // Add classes to <td contenteditable> elements based on their contents.
+    function deleteCellContent(cell) {
+        cell.textContent = "";
+        fixEmptyCell(cell);
+        cell.classList.remove("temporary");
+    }
 
-    function setCellMarkers(cell) {
-        if (cell.textContent.match(/^[1-9]*$/)) {
-            cell.classList.remove("invalid");
-        } else {
-            cell.classList.add("invalid");
-        }
-        if (cell.textContent.length < 2) {
+    // Normalize the content of a <td contenteditable>.
+
+    function normalizeCellContent(cell) {
+        var content = cell.textContent;
+
+        // Sort.
+        content = content.split("");
+        content.sort();
+        content = content.join("");
+
+        // Keep only non-zero digits.
+        content = content.replace(/[^1-9]+/g, "");
+
+        // Remove duplicate digits.
+        content = content.replace(/([1-9])\1/g, "");
+
+        // Replace cell content.
+        cell.textContent = content;
+        fixEmptyCell(cell);
+
+        // Add a class if the cell contains more than one digit.
+        if (content.length < 2) {
             cell.classList.remove("temporary");
         } else {
             cell.classList.add("temporary");
         }
     }
 
+    document
+        .querySelector("table")
+        .addEventListener("keydown", function (event) {
+            const arrowKeys = [
+                "ArrowDown",
+                "ArrowLeft",
+                "ArrowRight",
+                "ArrowUp",
+            ];
+            if (arrowKeys.includes(event.key)) {
+                moveFocus(event.target, event.key.slice(5).toLowerCase());
+            }
+            const deleteKeys = ["Backspace", "Clear", "Delete"];
+            if (deleteKeys.includes(event.key)) {
+                deleteCellContent(event.target);
+            }
+        });
+
     document.querySelector("table").addEventListener("input", function (event) {
-        setCellMarkers(event.target);
+        normalizeCellContent(event.target);
     });
 
     // Save and restore input state with location hash.
@@ -52,7 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
         inputs.forEach(function (input, index) {
             input.textContent = contents[index];
             fixEmptyCell(input);
-            setCellMarkers(input);
+            normalizeCellContent(input);
         });
     }
 

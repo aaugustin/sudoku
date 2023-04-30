@@ -28,15 +28,20 @@ td:nth-child(3n) {
     border-right-color: #000;
 }
 td[contenteditable] {
+    caret-color: transparent;
     font-weight: bold;
     color: #666;
+}
+td[contenteditable]::selection {
+    background-color: inherit;
+}
+td[contenteditable]:focus {
+    background-color: #eee;
+    outline: none;
 }
 td[contenteditable].temporary {
     font-size: 62.5%;
     vertical-align: bottom;
-}
-td[contenteditable].invalid {
-    color: #c33;
 }
 header, footer {
     font-family: "Helvetica Neue", sans-serif;
